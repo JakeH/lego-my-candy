@@ -1,6 +1,15 @@
 # lego-my-candy
 
-## App settings
+## Getting started
+
+1. Ensure you have Node.js version 12 or greater installed
+   1. https://nodejs.org/en/download/
+2. Run the command `npm ci` in this directory to install the necessary packages
+3. Follow the steps in the **App Settings** section
+4. Run `npm run start` to begin the script
+5. Press `CTRL+C` to exit
+
+## App Settings
 
 If the file `app.settings.json` does not already exist in this directory, create the file, then copy and paste the following into it. 
 
