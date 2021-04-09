@@ -9,11 +9,31 @@ async function start() {
 
     // listen for chat events...
     chatBot.eventStream().subscribe(event => {
-        if (event.type === 'redeem') {
-            // do something with specific event types
-            console.log(`User ${event.username} redeemed award ${event.rewardType}`);
-        } else {
-            console.log(event);
+        
+        // do something with each event type...
+
+        switch (event.type) {
+            case 'redeem':
+                console.log(`User ${event.username} redeemed award ${event.rewardType}`);
+                break;
+            case 'cheer':
+                console.log(`User ${event.username} just cheered with ${event.amount} bits!`);
+                break;
+            case 'command':
+                console.log(`User ${event.username} just issued ${event.command} with the message ${event.message}`);
+                break;
+            case 'join':
+                console.log(`User ${event.username} joined the chat`);
+                break;
+            case 'leave':
+                console.log(`User ${event.username} left the chat`);
+                break;
+            case 'message':
+                console.log(`User ${event.username} says ${event.message}`);
+                break;
+            default:
+                console.log(event);
+                break;
         }
     });
 

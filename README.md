@@ -2,12 +2,14 @@
 
 ## Getting started
 
-1. Ensure you have Node.js version 12 or greater installed
+1. Ensure you have Node.js version 12 or later installed
    1. https://nodejs.org/en/download/
-2. Run the command `npm ci` in this directory to install the necessary packages
-3. Follow the steps in the **App Settings** section
-4. Run `npm run start` to begin the script
-5. Press `CTRL+C` to exit
+2. Optionally, install VSCode for easier editing
+   1. https://code.visualstudio.com/download
+3. Run the command `npm ci` in this directory to install the necessary packages. This may take a few minutes
+4. Follow the steps in the **App Settings** section
+5. Run `npm run start` to begin the script
+6. Press `CTRL+C` to exit
 
 ## App Settings
 
@@ -47,7 +49,7 @@ You should see a **Client ID** token.
 Go to https://twitchapps.com/tmi/
 
 1. Click Connect
-2. After authenticating with Twitch...
+2. Authorize TMI with Twitch, if prompted
 
 You should see a text field starting with "oauth:". Copy the entire text, this is your password.
 
