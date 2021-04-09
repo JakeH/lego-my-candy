@@ -54,4 +54,6 @@ process.on('SIGTERM', stop);
 // entry point
 (async () => {
     await start();
+
+    console.log('Started app, waiting for activity');
 })();

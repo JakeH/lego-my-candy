@@ -47,6 +47,10 @@ function createTMIClient() {
     client.on('join', onJoinHandler);
     client.on('part', onPartHandler);
 
+    client.on('connected', () => {
+        console.log(`Chat bot connected to '${hostChannel}'`);
+    });
+
     // connect to Twitch
     client.connect();
 }
