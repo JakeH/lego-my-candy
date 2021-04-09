@@ -1,23 +1,26 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-      "sourceMap": false,
-      "noUnusedLocals": true,
-      "baseUrl": "./src/",
-      "outDir": "./dist/",
-      "declaration": true,
-      "moduleResolution": "node",
-      "emitDecoratorMetadata": true,
-      "experimentalDecorators": true,
-      "target": "es5",
-      "module": "commonjs",
-      "typeRoots": [
-          "node_modules/@types"
-      ],
-      "lib": [
-          "es2017",
-          "dom",
-          "dom.iterable"
-      ]
+    "sourceMap": false,
+    "noUnusedLocals": true,
+    "baseUrl": "./src/",
+    "outDir": "./dist/",
+    "declaration": true,
+    // "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    // "target": "es5",
+    // "module": "commonjs",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "types": [
+      "node",
+    ],
+    "lib": [
+      "es2017",
+      "dom",
+      "dom.iterable"
+    ]
   }
 }

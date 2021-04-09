@@ -1,4 +1,5 @@
-.env
+# do not check in the settings file
+app.settings.json
 
 # Logs
 logs
