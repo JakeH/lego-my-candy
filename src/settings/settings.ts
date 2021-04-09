@@ -8,7 +8,9 @@ let appSettings: AppSettings = null;
 
 function loadSettings() {
     if (!existsSync(settingsFile)) {
+        // cannot continue without settings, so we need to exit
         console.error(`${settingsFile} does not exist`);
+        process.exit(1);
     }
     appSettings = JSON.parse(readFileSync(settingsFile).toString());
     delete appSettings['$schema'];

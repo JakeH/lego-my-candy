@@ -44,7 +44,7 @@ async function start() {
  */
 async function stop() {
     await chatBot.stop();
-    process.exit(1);
+    process.exit(0);
 }
 
 // clean up on exit
