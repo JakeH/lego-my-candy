@@ -14,11 +14,13 @@ const { arrivalNotifications } = getCurrentSettings();
  * @param username 
  */
 export function checkFirstArrival(username: string) {
+    username = username.toLowerCase();
+
     if (knownArrivalsThisStream.includes(username)) {
         return;
     }
     const userToReact = arrivalNotifications.find(o =>
-        o.username.toLowerCase() === username.toLowerCase()
+        o.username === username
     );
 
     if (!userToReact) {
