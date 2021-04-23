@@ -63,14 +63,13 @@ Go to https://twitchapps.com/tmi/
 
 You should see a text field starting with "oauth:". Copy the entire text, this is your password.
 
-
-## OBS Websocket
+### OBS Websocket
 
 In your `app.settings.json` file, fill in the `address` and `password` fields. 
 
 `address` will likely just be `localhost:4444` as long as you haven't changed the default settings.
 
-## Arrival Notifications
+### Arrival Notifications
 
 In your `app.settings.json` file, add settings for each user you wish to have notifications for.
 
@@ -80,7 +79,7 @@ In your `app.settings.json` file, add settings for each user you wish to have no
 
 `durationInSeconds` is how long to keep the source active for, in seconds.
 
-### Example
+#### Example
 
 ```json
 
@@ -97,5 +96,23 @@ In your `app.settings.json` file, add settings for each user you wish to have no
         }
     ]
 
+```
+
+### Stream Elements
+
+This isn't really used yet (and may not be used ever), but the bones of using their API are in place. Don't bother with this section until/unless it's implemented in this project.
+
+To get your token:
+1. Log into Stream Elements web app
+2. Go to your account page ( https://streamelements.com/dashboard/account/channels )
+3. Toggle `Show secrets` 
+4. Copy the contents of the `JWT token`
+   
+You can add that token the the `app.settings.json` file as such:
+
+```json
+"streamElements": {
+    "token": ""
+},
 ```
 
