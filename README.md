@@ -19,13 +19,23 @@ This file contains confidential information. It will not leave your PC, and you 
 
 ```json
 {
-    "$schema": "./app.settings.schema.json",
     "channel": "",
     "identity": {
         "username": "",
         "password": "",
         "clientId": ""
-    }
+    },
+    "obsWebsocket":{
+        "address": "",
+        "password": "",
+    },
+    "arrivalNotifications": [
+        {
+            "username": "",
+            "sourceName": "",
+            "durationInSeconds": 0
+        }
+    ]
 }
 ```
 The `channel` property is the channel you want to connect to. It does not have to be your own.
@@ -54,4 +64,38 @@ Go to https://twitchapps.com/tmi/
 You should see a text field starting with "oauth:". Copy the entire text, this is your password.
 
 
+## OBS Websocket
+
+In your `app.settings.json` file, fill in the `address` and `password` fields. 
+
+`address` will likely just be `localhost:4444` as long as you haven't changed the default settings.
+
+## Arrival Notifications
+
+In your `app.settings.json` file, add settings for each user you wish to have notifications for.
+
+`username` is the case-insensitive name of the user on Twitch.
+
+`sourceName` is the name of the source in OBS which will be turned on, and then off.
+
+`durationInSeconds` is how long to keep the source active for, in seconds.
+
+### Example
+
+```json
+
+    "arrivalNotifications": [
+        {
+            "username": "UserA",
+            "sourceName": "Image1",
+            "durationInSeconds": 5
+        },
+        {
+            "username": "UserB",
+            "sourceName": "Image2",
+            "durationInSeconds": 15
+        }
+    ]
+
+```
 

@@ -1,0 +1,17 @@
+
+export interface UserJoinedSourceActivation {
+    /**
+     * The username to start the scene for
+     */
+    username: string;
+
+    /**
+     * The source name in OBS to activate
+     */
+    sourceName: string;
+
+    /**
+     * The number of seconds to keep the OBS scene activated
+     */
+    durationInSeconds: number;
+}

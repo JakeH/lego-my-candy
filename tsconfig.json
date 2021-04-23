@@ -2,7 +2,6 @@
   "compileOnSave": false,
   "compilerOptions": {
     "sourceMap": false,
-    "noUnusedLocals": true,
     "baseUrl": "./src/",
     "outDir": "./dist/",
     "declaration": true,

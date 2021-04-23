@@ -1,3 +1,5 @@
+import { UserJoinedSourceActivation } from 'arrivals/arrivals.models';
+import { OBSWebsocketCredentials } from 'obs-websocket/obs-websocket.models';
 
 export interface AppSettings {
 
@@ -27,5 +29,24 @@ export interface AppSettings {
          */
         clientId: string;
     };
+
+    streamElements?: {
+
+        /**
+         * Stream elements token for API access
+         */
+        token: string;
+        
+    };
+
+    /**
+     * OBS websocket connection information
+     */
+    obsWebsocket: OBSWebsocketCredentials;
+    
+    /**
+     * To perform actions based on users joining the stream
+     */
+    arrivalNotifications?: UserJoinedSourceActivation[];
 
 }
