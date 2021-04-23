@@ -40,7 +40,7 @@ export default {
         obs.send('SetSceneItemRender', {
             source,
             render: true,
-            'scene-name': ''
+            'scene-name': sceneName,
         }).catch(err => console.error(err));
 
         setTimeout(() => {
@@ -48,6 +48,7 @@ export default {
 
             obs.send('SetSceneItemRender', {
                 source,
+                'scene-name': sceneName,
                 render: false,
             }).catch(err => console.error(err));
         }, durationInSeconds * 1000);
