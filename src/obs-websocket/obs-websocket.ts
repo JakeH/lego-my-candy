@@ -40,7 +40,7 @@ export default {
         obs.send('SetSceneItemRender', {
             source,
             render: true,
-        });
+        }).catch(err => console.error(err));
 
         setTimeout(() => {
             console.log(`Turning '${source}' off`);
@@ -48,7 +48,7 @@ export default {
             obs.send('SetSceneItemRender', {
                 source,
                 render: false,
-            });
+            }).catch(err => console.error(err));
         }, durationInSeconds * 1000);
 
     }
