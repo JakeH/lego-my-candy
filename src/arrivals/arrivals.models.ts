@@ -11,6 +11,11 @@ export interface UserJoinedSourceActivation {
     sourceName: string;
 
     /**
+     * The name of the scene
+     */
+    sceneName: string;
+
+    /**
      * The number of seconds to keep the OBS scene activated
      */
     durationInSeconds: number;

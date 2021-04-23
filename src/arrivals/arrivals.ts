@@ -29,6 +29,6 @@ export function checkFirstArrival(username: string) {
 
     chatBot.say(`${username} is here!`);
 
-    const { sourceName, durationInSeconds } = userToReact;
-    obs.pulseSource(sourceName, durationInSeconds);
+    const { sourceName, sceneName, durationInSeconds } = userToReact;
+    obs.pulseSource(sourceName, sceneName, durationInSeconds);
 }

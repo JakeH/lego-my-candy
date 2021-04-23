@@ -33,13 +33,14 @@ export default {
      * @param source The name of the source to target
      * @param durationInSeconds The duration for this source to be on
      */
-    pulseSource: (source: string, durationInSeconds: number) => {
+    pulseSource: (source: string, sceneName: string, durationInSeconds: number) => {
 
         console.log(`Turning '${source}' on`);
 
         obs.send('SetSceneItemRender', {
             source,
             render: true,
+            'scene-name': ''
         }).catch(err => console.error(err));
 
         setTimeout(() => {
