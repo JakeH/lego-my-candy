@@ -14,20 +14,20 @@ const { arrivalNotifications } = getCurrentSettings();
  * @param username 
  */
 export function checkFirstArrival(username: string) {
-    username = username.toLowerCase();
+    const lowername = username.toLowerCase();
 
-    if (knownArrivalsThisStream.includes(username)) {
+    if (knownArrivalsThisStream.includes(lowername)) {
         return;
     }
     const userToReact = arrivalNotifications.find(o =>
-        o.username === username
+        o.username.toLowerCase() === lowername
     );
 
     if (!userToReact) {
         return;
     }
 
-    knownArrivalsThisStream.push(username);
+    knownArrivalsThisStream.push(lowername);
 
     chatBot.say(`${username} is here!`);
 
