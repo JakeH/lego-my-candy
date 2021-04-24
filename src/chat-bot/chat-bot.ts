@@ -13,7 +13,7 @@ let client: Client;
 
 const events$ = new Subject<AllEventTypes>();
 
-function createTMIClient() {
+function createTMIClient(): Promise<void> {
 
     const { channel, identity } = getCurrentSettings();
     const { clientId, username, password } = identity;
@@ -47,12 +47,20 @@ function createTMIClient() {
     client.on('join', onJoinHandler);
     client.on('part', onPartHandler);
 
+    let resolve: () => void;
+    const prom = new Promise<void>(res => {
+        resolve = res;
+    });
+
     client.on('connected', () => {
+        resolve();
         console.log(`Chat bot connected to '${hostChannel}'`);
     });
 
     // connect to Twitch
     client.connect();
+
+    return prom;
 }
 
 function onJoinHandler(channel: string, username: string, self: boolean) {
@@ -143,7 +151,7 @@ export default {
      * Connects to the channel's chat and processes incoming messages
      */
     start: async () => {
-        createTMIClient();
+        return createTMIClient();
     },
 
     /**

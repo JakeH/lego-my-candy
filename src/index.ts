@@ -1,6 +1,9 @@
 import chatBot from './chat-bot/chat-bot';
 import obs from './obs-websocket/obs-websocket';
 import { checkFirstArrival } from './arrivals/arrivals';
+import { tokenStringParser, wait } from './utils/utils';
+import { CommandDirective } from 'commands/commands.model';
+import { processScene } from './scenes/scenes';
 
 /**
  * Main function to be ran on start
@@ -62,6 +65,31 @@ process.on('SIGTERM', stop);
 (async () => {
 
     await start();
+
+    await wait(2e3);
+
+    const commandOne: CommandDirective = {
+        command: 'test',
+        directives: [{
+            type: 'chat',
+            message: 'Hello, {{username}}',
+        }, {
+            type: 'chat',
+            delayInSeconds: 3,
+            message: 'Goodbye, {{username}}',
+        }, {
+            type: 'audio',
+            filename: 'c:/temp/file_example_OOG_1MG.ogg',
+        }, {
+            type: 'obs',
+            durationInSeconds: 3,
+            sceneName: 'Scene',
+            sourceName: 'Image',
+        }]
+    };
+
+    processScene(commandOne.directives, { username: 'Grumble' });
+    processScene(commandOne.directives, { username: 'Grumble' });
 
     // obs.getSourcesList().then(list => console.log(list));
 

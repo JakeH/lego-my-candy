@@ -1,5 +1,7 @@
 import { UserJoinedSourceActivation } from 'arrivals/arrivals.models';
+import { CommandDirective } from 'commands/commands.model';
 import { OBSWebsocketCredentials } from 'obs-websocket/obs-websocket.models';
+import { AllSceneTypes } from 'scenes/scenes.models';
 
 export interface AppSettings {
 
@@ -36,17 +38,22 @@ export interface AppSettings {
          * Stream elements token for API access
          */
         token: string;
-        
+
     };
 
     /**
      * OBS websocket connection information
      */
     obsWebsocket: OBSWebsocketCredentials;
-    
+
     /**
      * To perform actions based on users joining the stream
      */
     arrivalNotifications?: UserJoinedSourceActivation[];
+
+    /**
+     * A list of scenes to trigger based on a command
+     */
+    commandTriggers?: CommandDirective[];
 
 }
