@@ -1,5 +1,12 @@
 import { AllSceneTypes } from 'scenes/scenes.models';
 
+export interface CommandContext {
+    username: string;
+    moderator: boolean;
+    vip: boolean;
+    sent: Date;
+}
+
 export interface CommandDirective {
     /**
      * The command text (minus the leading !) which triggers this directive
@@ -15,7 +22,7 @@ export interface CommandDirective {
      * If true, only VIP can trigger this command
      */
     vip?: boolean;
-    
+
     /**
      * The scene directive to invoke for this command
      */

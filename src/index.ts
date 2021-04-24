@@ -4,6 +4,7 @@ import { checkFirstArrival } from './arrivals/arrivals';
 import { tokenStringParser, wait } from './utils/utils';
 import { CommandDirective } from 'commands/commands.model';
 import { processScene } from './scenes/scenes';
+import { processCommand } from './commands/commands';
 
 /**
  * Main function to be ran on start
@@ -28,6 +29,7 @@ async function start() {
                 console.log(`User ${event.username} just cheered with ${event.amount} bits!`);
                 break;
             case 'command':
+                processCommand(event.command, event);
                 console.log(`User ${event.username} just issued ${event.command} with the message ${event.message}`);
                 break;
             case 'join':
