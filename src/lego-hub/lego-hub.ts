@@ -1,35 +1,72 @@
-import PoweredUP, { BasicMotor, Hub } from 'node-poweredup';
-
-// TODO: 
-// Create profile for speed and duration based on bit / point amounts
-// { duration: 3000, speed: 50, bits: 10, points: 100 }
+import PoweredUP, { BaseHub, BasicMotor } from 'node-poweredup';
+import { Subject } from 'rxjs';
+import { MotorMovementDirective } from './lego-hub.models';
 
 const poweredUp = new PoweredUP();
 
-poweredUp.on('discover', async (hub: Hub) => {
+const hubs$ = new Subject<BaseHub>();
+
+poweredUp.on('discover', async (hub: BaseHub) => {
     console.log(`Discovered ${hub.name}!`);
 
     // Connect to the Hub
     await hub.connect();
 
-    // const motorA = await hub.waitForDeviceAtPort('A') as BasicMotor; // Make sure a motor is plugged into port A
-    // const motorB = await hub.waitForDeviceAtPort('B') as BasicMotor; // Make sure a motor is plugged into port B
-    // console.log('Connected');
-
-    // while (true) { // Repeat indefinitely
-    //     console.log('Running motor B at speed 50');
-    //     motorB.setPower(50); // Start a motor attached to port B to run a 3/4 speed (75) indefinitely
-    //     console.log('Running motor A at speed 100 for 2 seconds');
-    //     motorA.setPower(100); // Run a motor attached to port A for 2 seconds at maximum speed (100) then stop
-    //     await hub.sleep(2000);
-    //     motorA.brake();
-    //     await hub.sleep(1000); // Do nothing for 1 second
-    //     console.log('Running motor A at speed -30 for 1 second');
-    //     motorA.setPower(-30); // Run a motor attached to port A for 2 seconds at 1/2 speed in reverse (-50) then stop
-    //     await hub.sleep(2000);
-    //     motorA.brake();
-    //     await hub.sleep(1000); // Do nothing for 1 second
-    // }
+    hubs$.next(hub);
 });
 
-poweredUp.scan();
+/**
+ * Moves a motor according to a movement directive
+ * 
+ * @param hubName 
+ * @param directive 
+ * @returns 
+ */
+async function moveMotor(hubName: string, directive: MotorMovementDirective) {
+
+    const [hub] = poweredUp.getHubsByName(hubName);
+    if (!hub) {
+        console.error(`Could not find hub ${hubName}`);
+        return;
+    }
+
+    const {durationInSeconds, port, power} = directive;
+
+    const motor = await hub.waitForDeviceAtPort(port) as BasicMotor;
+
+    await motor.setPower(power);
+    await hub.sleep(durationInSeconds * 1000);
+    await motor.brake();
+
+}
+
+export default {
+
+    /**
+     * Begins the scan for hub discovery
+     */
+    start: async () => {
+        poweredUp.scan();
+    },
+
+    /**
+     * Stops hub discovery
+     */
+    stop: async () => {
+        poweredUp.stop();
+    },
+
+    /**
+     * Emits when a new hub is discovered and is connected to
+     */
+    hubDiscoveryStream: () => hubs$,
+
+    /**
+     * Returns the first hub with the matching name
+     * 
+     * @param name The hub name
+     */
+    getHubByName: (name: string) => poweredUp.getHubsByName(name)[0],
+
+    moveMotor,
+};
