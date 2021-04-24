@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "ts-node ./src/index.ts",
+    "audio": "ts-node ./src/audio/audio.ts",
     "lint": "tslint --project tslint.json -t stylish",
     "build": "tsc"
   },
@@ -20,7 +21,7 @@
   },
   "homepage": "https://github.com/JakeH/lego-my-candy#readme",
   "devDependencies": {
-    "@types/node": "^14.14.37",
+    "@types/node": "^14.14.41",
     "@types/tmi.js": "^1.7.1",
     "ts-node": "^9.1.1",
     "tslint": "^6.1.3",
@@ -28,11 +29,11 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
-    "iohook": "^0.9.0",
+    "iohook": "^0.9.1",
     "jwt-decode": "^3.1.2",
     "obs-websocket-js": "^4.0.2",
     "rxjs": "^6.6.7",
     "say": "^0.16.0",
-    "tmi.js": "^1.7.5"
+    "tmi.js": "^1.8.3"
   }
 }
