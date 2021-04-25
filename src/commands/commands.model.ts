@@ -1,30 +1,22 @@
-import { AllSceneTypes } from 'scenes/scenes.models';
+import { UserInfo } from '../chat-bot/chat-bot.models';
+import { AllSceneTypes } from '../scenes/scenes.models';
 
-export interface CommandContext {
-    username: string;
-    moderator: boolean;
-    vip: boolean;
+export type CommandContext = UserInfo & {
     sent: Date;
-}
+};
 
-export interface CommandDirective {
+export type UserRestrictions = Pick<Partial<UserInfo>, 'broadcaster' | 'moderator' | 'subscriber' | 'vip'>;
+
+export type CommandDirective = UserRestrictions & {
+
     /**
      * The command text (minus the leading !) which triggers this directive
      */
     command: string;
 
     /**
-     * If true, only moderators can trigger this command
-     */
-    moderator?: boolean;
-
-    /**
-     * If true, only VIP can trigger this command
-     */
-    vip?: boolean;
-
-    /**
      * The scene directive to invoke for this command
      */
     directives: AllSceneTypes[];
-}
+
+};

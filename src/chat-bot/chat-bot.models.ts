@@ -1,11 +1,20 @@
 import { ChatUserstate, CommonUserstate } from 'tmi.js';
 
-export type EventType = 'message' | 'command' | 'redeem' | 'cheer' | 'join' | 'leave';
+export type EventType = 'message' | 'command' | 'redeem' | 'cheer' | 'join' | 'leave' | 'raided';
 
 interface EventBase {
     readonly type: EventType;
     readonly username: string;
     readonly sent: Date;
+}
+
+export interface UserInfo {
+    readonly username: string;
+    readonly moderator: boolean;
+    readonly vip: boolean;
+    readonly broadcaster: boolean;
+    readonly subscriber: boolean;
+    readonly founder: boolean;
 }
 
 interface EventBaseWithContext<T extends CommonUserstate> extends EventBase {
@@ -20,35 +29,32 @@ export interface LeaveEvent extends EventBase {
     readonly type: 'leave';
 }
 
-export interface ChatMessage extends EventBaseWithContext<ChatUserstate> {
+export interface ChatMessage extends EventBaseWithContext<ChatUserstate>, UserInfo {
     readonly type: 'message';
     readonly message: string;
-    readonly moderator: boolean;
-    readonly vip: boolean;
 }
 
-export interface CheerMessage extends EventBaseWithContext<ChatUserstate> {
+export interface CheerMessage extends EventBaseWithContext<ChatUserstate>, UserInfo {
     readonly type: 'cheer';
     readonly message: string;
     readonly amount: number;
-    readonly moderator: boolean;
-    readonly vip: boolean;
 }
 
-export interface CommandMessage extends EventBaseWithContext<ChatUserstate> {
+export interface CommandMessage extends EventBaseWithContext<ChatUserstate>, UserInfo {
     readonly type: 'command';
     readonly command: string;
     readonly message: string;
-    readonly moderator: boolean;
-    readonly vip: boolean;
 }
 
-export interface PointsMessage extends EventBaseWithContext<ChatUserstate> {
+export interface PointsMessage extends EventBaseWithContext<ChatUserstate>, UserInfo {
     readonly type: 'redeem';
     readonly rewardType: string;
-    readonly moderator: boolean;
-    readonly vip: boolean;
+}
+
+export interface RaidedMessage extends EventBase {
+    readonly type: 'raided';
+    readonly viewers: number;
 }
 
 export type AllEventTypes = ChatMessage | CheerMessage | CommandMessage | PointsMessage
-    | JoinEvent | LeaveEvent;
+    | JoinEvent | LeaveEvent | RaidedMessage;

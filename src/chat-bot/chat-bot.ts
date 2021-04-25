@@ -3,10 +3,11 @@ import { getCurrentSettings } from '../settings/settings';
 import {
     ChatUserstate,
     Client,
+    Badges,
     client as tmiClient,
     Options as tmiOptions
 } from 'tmi.js';
-import { AllEventTypes } from './chat-bot.models';
+import { AllEventTypes, UserInfo } from './chat-bot.models';
 import { logMuted } from '../utils/log';
 
 let hostChannel = '';
@@ -47,6 +48,7 @@ function createTMIClient(): Promise<void> {
     client.on('cheer', onCheerHandler);
     client.on('join', onJoinHandler);
     client.on('part', onPartHandler);
+    client.on('raided', onRaidedHandler);
 
     let resolve: () => void;
     const prom = new Promise<void>(res => {
@@ -64,26 +66,42 @@ function createTMIClient(): Promise<void> {
     return prom;
 }
 
+function parseBadges(badges: Badges): { [key in keyof Badges]: boolean } {
+    return Object.entries(badges || {}).reduce((acc, [key]) => {
+        // if the value is in badges, then it's set, 
+        // the value doesn't seem to mean anything
+        acc[key] = true;
+        return acc;
+    }, {});
+
+}
+
 function extractInfo(context: ChatUserstate): {
-    moderator: boolean;
-    vip: boolean;
     sent: Date;
     username: string;
-} {
+} & UserInfo {
     const username = context['display-name'];
     const sent = new Date(Number(context['tmi-sent-ts']));
-    const moderator = context.mod || false;
-
-    // TODO: seems this value will be '1' for VIPs.
-    // I'm not sure if there are multiple states or not...
-    const { vip } = context.badges || { vip: '0' };
+    const { moderator, subscriber, broadcaster, vip, founder } = parseBadges(context.badges);
 
     return {
         username,
         moderator,
         sent,
-        vip: vip === '1',
+        vip,
+        subscriber: subscriber || founder,
+        broadcaster,
+        founder,
     };
+}
+
+function onRaidedHandler(channel: string, username: string, viewers: number) {
+    events$.next({
+        type: 'raided',
+        username,
+        viewers,
+        sent: new Date(),
+    });
 }
 
 function onJoinHandler(channel: string, username: string, self: boolean) {

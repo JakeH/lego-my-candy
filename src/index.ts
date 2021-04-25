@@ -52,8 +52,11 @@ async function start() {
                 checkFirstArrival(event.username);
                 ev(event, `${lh(event.username)} says '${lh(event.message)}'`);
                 break;
+            case 'raided': 
+                ev(event, `${lh(event.username)} with '${lh(event.viewers)} viewers'`);
+                break;
             default:
-                logMuted(event);
+                console.log(event);
                 break;
         }
     });
