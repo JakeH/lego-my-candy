@@ -77,29 +77,6 @@ process.on('SIGTERM', stop);
 
     await start();
 
-    const commandOne: CommandDirective = {
-        command: 'test',
-        directives: [{
-            type: 'chat',
-            message: 'Hello, {{username}}',
-        }, {
-            type: 'chat',
-            delayInSeconds: 3,
-            message: 'Goodbye, {{username}}',
-        }, {
-            type: 'audio',
-            filename: 'c:/temp/file_example_OOG_1MG.ogg',
-        }, {
-            type: 'obs',
-            durationInSeconds: 3,
-            sceneName: 'Scene',
-            sourceName: 'Image',
-        }]
-    };
-
-    // processScene(commandOne.directives, { username: 'Grumble' });
-    // processScene(commandOne.directives, { username: 'Grumble' });
-
     // obs.getSourcesList().then(list => console.log(list));
 
     logMuted('Started application');
