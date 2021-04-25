@@ -7,13 +7,14 @@ import {
     Options as tmiOptions
 } from 'tmi.js';
 import { AllEventTypes } from './chat-bot.models';
+import { logMuted } from '../utils/log';
 
 let hostChannel = '';
 let client: Client;
 
 const events$ = new Subject<AllEventTypes>();
 
-function createTMIClient() {
+function createTMIClient(): Promise<void> {
 
     const { channel, identity } = getCurrentSettings();
     const { clientId, username, password } = identity;
@@ -47,12 +48,42 @@ function createTMIClient() {
     client.on('join', onJoinHandler);
     client.on('part', onPartHandler);
 
+    let resolve: () => void;
+    const prom = new Promise<void>(res => {
+        resolve = res;
+    });
+
     client.on('connected', () => {
-        console.log(`Chat bot connected to '${hostChannel}'`);
+        resolve();
+        logMuted(`Chat bot connected to '${hostChannel}'`);
     });
 
     // connect to Twitch
     client.connect();
+
+    return prom;
+}
+
+function extractInfo(context: ChatUserstate): {
+    moderator: boolean;
+    vip: boolean;
+    sent: Date;
+    username: string;
+} {
+    const username = context['display-name'];
+    const sent = new Date(Number(context['tmi-sent-ts']));
+    const moderator = context.mod || false;
+
+    // TODO: seems this value will be '1' for VIPs.
+    // I'm not sure if there are multiple states or not...
+    const { vip } = context.badges || { vip: '0' };
+
+    return {
+        username,
+        moderator,
+        sent,
+        vip: vip === '1',
+    };
 }
 
 function onJoinHandler(channel: string, username: string, self: boolean) {
@@ -80,8 +111,7 @@ function onPartHandler(channel: string, username: string, self: boolean) {
 function onMessageHandler(channel: string, context: ChatUserstate, message: string, self: boolean) {
     if (self) { return; } // Ignore messages from the bot
 
-    const username = context['display-name'];
-    const sent = new Date(Number(context['tmi-sent-ts']));
+    const extracted = extractInfo(context);
 
     if (message && message[0] === '!') {
         const command = message.substr(1).split(' ')[0];
@@ -92,42 +122,38 @@ function onMessageHandler(channel: string, context: ChatUserstate, message: stri
             command,
             context,
             message: nextMessage,
-            username,
-            sent,
+            ...extracted,
         });
     } else {
         events$.next({
             type: 'message',
             context,
             message,
-            username,
-            sent,
+            ...extracted,
         });
     }
 }
 
 function onRedeemHandler(channel: string, username: string, rewardType: string, context: ChatUserstate) {
-    const sent = new Date(Number(context['tmi-sent-ts']));
+    const extracted = extractInfo(context);
     events$.next({
         type: 'redeem',
         rewardType,
         context,
-        username,
-        sent,
+        ...extracted,
+        username, // don't override the provided name with the extracted
     });
 }
 
 function onCheerHandler(channel: string, context: ChatUserstate, message: string) {
-    const username = context['display-name'];
-    const sent = new Date(Number(context['tmi-sent-ts']));
+    const extracted = extractInfo(context);
 
     events$.next({
         type: 'cheer',
         amount: Number(context['bits']),
         context,
-        username,
         message,
-        sent,
+        ...extracted,
     });
 }
 
@@ -143,7 +169,7 @@ export default {
      * Connects to the channel's chat and processes incoming messages
      */
     start: async () => {
-        createTMIClient();
+        return createTMIClient();
     },
 
     /**
