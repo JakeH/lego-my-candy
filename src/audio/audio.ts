@@ -1,4 +1,8 @@
 import { spawn } from 'child_process';
+import { existsSync } from 'fs';
+import { logError } from '../utils/log';
+
+const bin = './bin/ffplay';
 
 /**
  * Plays and audio file
@@ -8,7 +12,12 @@ import { spawn } from 'child_process';
  */
 async function play(filename: string): Promise<void> {
 
-    const process = spawn('.bin/ffplay',
+    if (!existsSync(bin)) {
+        logError('Audio player binary is missing');
+        return;
+    }
+
+    const process = spawn(bin,
         [filename, '-nodisp', '-autoexit'], {
         stdio: ['ignore', 'ignore', 'ignore']
     });
