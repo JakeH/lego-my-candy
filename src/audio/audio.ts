@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 import { existsSync } from 'fs';
 import { logError } from '../utils/log';
 
-const bin = './bin/ffplay';
+const bin = './bin/ffplay.exe';
 
 /**
  * Plays and audio file
