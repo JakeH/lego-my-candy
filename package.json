@@ -31,9 +31,11 @@
     "axios": "^0.21.1",
     "iohook": "^0.9.1",
     "jwt-decode": "^3.1.2",
+    "kleur": "^4.1.4",
     "obs-websocket-js": "^4.0.2",
     "rxjs": "^6.6.7",
     "say": "^0.16.0",
+    "sequential-task-queue": "^1.2.1",
     "tmi.js": "^1.8.3"
   }
 }

@@ -7,6 +7,7 @@ import {
     Options as tmiOptions
 } from 'tmi.js';
 import { AllEventTypes } from './chat-bot.models';
+import { logMuted } from '../utils/log';
 
 let hostChannel = '';
 let client: Client;
@@ -54,7 +55,7 @@ function createTMIClient(): Promise<void> {
 
     client.on('connected', () => {
         resolve();
-        console.log(`Chat bot connected to '${hostChannel}'`);
+        logMuted(`Chat bot connected to '${hostChannel}'`);
     });
 
     // connect to Twitch

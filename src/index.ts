@@ -1,10 +1,19 @@
-import chatBot from './chat-bot/chat-bot';
-import obs from './obs-websocket/obs-websocket';
-import { checkFirstArrival } from './arrivals/arrivals';
-import { tokenStringParser, wait } from './utils/utils';
+import { AllEventTypes } from 'chat-bot/chat-bot.models';
 import { CommandDirective } from 'commands/commands.model';
+import { bgRed } from 'kleur';
 import { processScene } from './scenes/scenes';
+import { checkFirstArrival } from './arrivals/arrivals';
+import chatBot from './chat-bot/chat-bot';
 import { processCommand } from './commands/commands';
+import obs from './obs-websocket/obs-websocket';
+import { logMuted } from './utils/log';
+import { lh } from './utils/utils';
+
+function ev(event: AllEventTypes, message: string) {
+    const eventName = bgRed().bold().white(event.type.toUpperCase());
+
+    logMuted(`${eventName} ${message}`);
+}
 
 /**
  * Main function to be ran on start
@@ -23,28 +32,28 @@ async function start() {
 
         switch (event.type) {
             case 'redeem':
-                console.log(`User ${event.username} redeemed award ${event.rewardType}`);
+                ev(event, `${lh(event.username)} redeemed '${lh(event.rewardType)}'`);
                 break;
             case 'cheer':
-                console.log(`User ${event.username} just cheered with ${event.amount} bits!`);
+                ev(event, `${lh(event.username)} cheered ${lh(event.amount)} bits!`);
                 break;
             case 'command':
                 processCommand(event.command, event);
-                console.log(`User ${event.username} just issued ${event.command} with the message ${event.message}`);
+                ev(event, `${lh(event.username)} issued '${lh(event.command)}', '${lh(event.message)}'`);
                 break;
             case 'join':
                 checkFirstArrival(event.username);
-                console.log(`User ${event.username} joined the chat`);
+                ev(event, `${lh(event.username)}`);
                 break;
             case 'leave':
-                console.log(`User ${event.username} left the chat`);
+                ev(event, `${lh(event.username)}`);
                 break;
             case 'message':
                 checkFirstArrival(event.username);
-                console.log(`User ${event.username} says ${event.message}`);
+                ev(event, `${lh(event.username)} says '${lh(event.message)}'`);
                 break;
             default:
-                console.log(event);
+                logMuted(event);
                 break;
         }
     });
@@ -68,8 +77,6 @@ process.on('SIGTERM', stop);
 
     await start();
 
-    await wait(2e3);
-
     const commandOne: CommandDirective = {
         command: 'test',
         directives: [{
@@ -90,10 +97,11 @@ process.on('SIGTERM', stop);
         }]
     };
 
-    processScene(commandOne.directives, { username: 'Grumble' });
-    processScene(commandOne.directives, { username: 'Grumble' });
+    // processScene(commandOne.directives, { username: 'Grumble' });
+    // processScene(commandOne.directives, { username: 'Grumble' });
 
     // obs.getSourcesList().then(list => console.log(list));
 
-    console.log('Started app, waiting for activity');
+    logMuted('Started application');
+
 })();

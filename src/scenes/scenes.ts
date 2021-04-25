@@ -1,55 +1,10 @@
 import audio from '../audio/audio';
 import chatbot from '../chat-bot/chat-bot';
 import obs from '../obs-websocket/obs-websocket';
-import { tokenStringParser, wait } from '../utils/utils';
+import { addToQueue, tokenStringParser, wait } from '../utils/utils';
 import { AllSceneTypes, SceneContext } from './scenes.models';
 
-// TODO: queueing system
-const sceneQueue: {
-    scenes: AllSceneTypes[];
-    context: SceneContext;
-    resolve: () => void;
-    reject: (err: Error) => void;
-}[] = [];
-
-let isPlaying = false;
-
-async function checkForNext() {
-
-    if (sceneQueue.length > 0) {
-        // wait for a little bit before starting the next command?
-        await wait(1e3);
-        const { scenes, context, resolve, reject } = sceneQueue.shift();
-        isPlaying = false;
-        return processScene(scenes, context).then(resolve).catch(reject);
-    } else {
-        isPlaying = false;
-    }
-
-}
-
-export async function processScene(scenes: AllSceneTypes[], context: SceneContext): Promise<void> {
-
-    if (isPlaying) {
-
-        let resolve: () => void;
-        let reject: (err: Error) => void;
-
-        const retPromise = new Promise<void>((res, rej) => {
-            resolve = res;
-            reject = rej;
-        });
-
-        sceneQueue.push({
-            scenes,
-            context,
-            resolve,
-            reject,
-        });
-        return retPromise;
-    }
-
-    isPlaying = true;
+function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Promise<void> {
 
     const promises = scenes.map(s => {
 
@@ -70,9 +25,10 @@ export async function processScene(scenes: AllSceneTypes[], context: SceneContex
         }
     });
 
-    return Promise.all(promises).then(() => {
-    }).finally(() => {
-        checkForNext();
-    });
+    return Promise.all(promises).then(() => { });
 
+}
+
+export async function processScene(scenes: AllSceneTypes[], context: SceneContext): Promise<void> {
+    return addToQueue(() => privateProcessScene(scenes, context));
 }

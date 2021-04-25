@@ -1,6 +1,7 @@
 import { CommandContext } from './commands.model';
 import { getCurrentSettings } from '../settings/settings';
 import { processScene } from '../scenes/scenes';
+import { logError } from '../utils/log';
 
 export function processCommand(command: string, context: CommandContext) {
     const { commandTriggers } = getCurrentSettings();
@@ -24,7 +25,7 @@ export function processCommand(command: string, context: CommandContext) {
     processScene(directives, {
         ...context,
     }).catch(err => {
-        console.error(`Failed to run command ${command}`, err);
+        logError(`Failed to run command ${command}`, err);
     });
 
 }
