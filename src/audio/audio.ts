@@ -12,10 +12,10 @@ const bin = './bin/ffplay.exe';
  */
 async function play(filename: string): Promise<void> {
 
-    if (!existsSync(bin)) {
-        logError('Audio player binary is missing');
-        return;
-    }
+    // if (!existsSync(bin)) {
+    //     logError('Audio player binary is missing');
+    //     return;
+    // }
 
     const process = spawn(bin,
         [filename, '-nodisp', '-autoexit'], {
