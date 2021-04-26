@@ -1,7 +1,6 @@
 import { UserJoinedSourceActivation } from 'arrivals/arrivals.models';
 import { CommandDirective } from 'commands/commands.model';
 import { OBSWebsocketCredentials } from 'obs-websocket/obs-websocket.models';
-import { AllSceneTypes } from 'scenes/scenes.models';
 
 export interface AppSettings {
 
@@ -30,6 +29,13 @@ export interface AppSettings {
          * See the README.md for more information
          */
         clientId: string;
+
+        /**
+         * Twitch app client secret
+         * 
+         * See the README.md for more information
+         */
+        clientSecret: string;
     };
 
     streamElements?: {
