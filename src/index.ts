@@ -4,10 +4,12 @@ import { bgRed } from 'kleur';
 import { processScene } from './scenes/scenes';
 import { checkFirstArrival } from './arrivals/arrivals';
 import chatBot from './chat-bot/chat-bot';
+import pubsub from './pubsub/pubsub';
 import { processCommand } from './commands/commands';
 import obs from './obs-websocket/obs-websocket';
 import { logMuted } from './utils/log';
 import { lh } from './utils/utils';
+import { getCurrentSettings } from './settings/settings';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
@@ -52,7 +54,7 @@ async function start() {
                 checkFirstArrival(event.username);
                 ev(event, `${lh(event.username)} says '${lh(event.message)}'`);
                 break;
-            case 'raided': 
+            case 'raided':
                 ev(event, `${lh(event.username)} with '${lh(event.viewers)} viewers'`);
                 break;
             default:
@@ -78,7 +80,21 @@ process.on('SIGTERM', stop);
 // entry point
 (async () => {
 
-    await start();
+    await pubsub.start();
+
+    const { identity } = getCurrentSettings();
+
+    pubsub.send({
+        'type': 'LISTEN',
+        'nonce': '44h1k13746815ab1r2',
+        'data': {
+            // 'topics': ['channel-bits-events-v1.502175626'],
+            'topics': ['channel-bits-events-v1.401095808'],            
+            'auth_token': identity.password
+        }
+    });
+
+    // await start();
 
     // obs.getSourcesList().then(list => console.log(list));
 
