@@ -104,8 +104,7 @@ async function sendMessage(type: MessageTypes, body: PubSubRequestBody) {
         type,
         data: {
             ...body,
-            // auth_token: token.token.access_token,
-            auth_token: 'snf61ksfxn5afnn0smsfvom70524qw'
+            auth_token: token.token.access_token,
         }
     };
 
