@@ -26,12 +26,18 @@ function loadSettings() {
     logMuted('Loaded settings file');
 }
 
+let debounceTimerRef: NodeJS.Timeout;
+
 // call before watch
 ensureExists();
 watch(settingsFile, (event, filename) => {
     if (filename && event === 'change') {
-        logMuted(`Settings file changed, reloading`);
-        loadSettings();
+        clearTimeout(debounceTimerRef);
+
+        debounceTimerRef = setTimeout(() => {
+            logMuted(`Settings file changed, reloading`);
+            loadSettings();
+        }, 50);
     }
 });
 

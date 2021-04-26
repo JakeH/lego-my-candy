@@ -4,8 +4,8 @@ import { checkFirstArrival } from './arrivals/arrivals';
 import chatBot from './chat-bot/chat-bot';
 import { processCommand } from './commands/commands';
 import obs from './obs-websocket/obs-websocket';
-import { logMuted } from './utils/log';
-import { lh } from './utils/utils';
+import { logError, logMuted } from './utils/log';
+import { lh, tryAwait } from './utils/utils';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
@@ -21,7 +21,10 @@ async function start() {
     await chatBot.start();
 
     // wait to connect to OBS
-    await obs.start();
+    const [obsErr] = await tryAwait(() => obs.start());
+    if (obsErr){
+        logError(`Could not connect to OBS`, obsErr);
+    }
 
     // listen for chat events...
     chatBot.eventStream().subscribe(event => {
