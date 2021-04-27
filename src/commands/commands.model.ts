@@ -40,3 +40,40 @@ export interface CommandDirective {
     disabled?: boolean;
 
 }
+
+export interface BitCommandDirective {
+
+    /**
+     * The minimum amount of bits needed to activate this command
+     */
+    minAmount: number;
+
+    /**
+    * The scene directive to invoke for this command
+    */
+    directives: AllSceneTypes[];
+
+    /**
+     * If true, the command will be disabled
+     */
+    disabled?: boolean;
+}
+
+export interface PointCommandDirective {
+
+    /**
+     * The reward title which, when redeemed, will activate this command
+     */
+    rewardTitle: string;
+
+    /**
+    * The scene directive to invoke for this command
+    */
+    directives: AllSceneTypes[];
+
+    /**
+     * If true, the command will be disabled
+     */
+    disabled?: boolean;
+
+}

@@ -1,5 +1,5 @@
 import { UserJoinedSourceActivation } from 'arrivals/arrivals.models';
-import { CommandDirective } from 'commands/commands.model';
+import { BitCommandDirective, CommandDirective, PointCommandDirective } from 'commands/commands.model';
 import { OBSWebsocketCredentials } from 'obs-websocket/obs-websocket.models';
 
 export interface AppSettings {
@@ -79,5 +79,15 @@ export interface AppSettings {
      * A list of scenes to trigger based on a command
      */
     commandTriggers?: CommandDirective[];
+
+    /**
+     * A list of scenes to trigger based on bit cheers
+     */
+    bitTriggers?: BitCommandDirective[];
+
+    /**
+     * A list of scenes to trigger based on channel point redemptions
+     */
+    pointTriggers?: PointCommandDirective[];
 
 }

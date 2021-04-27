@@ -2,7 +2,8 @@ import { AllEventTypes } from 'chat-bot/chat-bot.models';
 import { bgRed } from 'kleur';
 import { checkFirstArrival } from './arrivals/arrivals';
 import chatBot from './chat-bot/chat-bot';
-import { processCommand } from './commands/commands';
+import { processBitCommand, processCommand, processPointCommand } from './commands/commands';
+import { CommandContext } from './commands/commands.model';
 import obs from './obs-websocket/obs-websocket';
 import pubsub from './pubsub/pubsub';
 import { logError, logMuted } from './utils/log';
@@ -25,10 +26,18 @@ async function startPubSub() {
 
         switch (event.type) {
             case 'bits':
+                processBitCommand(event.data.bits_used, {
+                    username: event.data.user_name
+                } as CommandContext);
+
                 message = `${lh(event.data.user_name || 'anon')} cheered ${lh(event.data.bits_used)} bits!`;
                 break;
 
             case 'points':
+                processPointCommand(event.data.redemption.reward.title, {
+                    username: event.data.redemption.user.display_name
+                } as CommandContext);
+
                 message = `${lh(event.data.redemption.user.display_name)} redeemed ${lh(event.data.redemption.reward.title)}`;
                 break;
         }
@@ -65,12 +74,10 @@ async function start() {
         // do something with each event type...
 
         switch (event.type) {
-            // case 'redeem':
-            //     ev(event, `${lh(event.username)} redeemed '${lh(event.rewardType)}'`);
-            //     break;
-            // case 'cheer':
-            //     ev(event, `${lh(event.username)} cheered ${lh(event.amount)} bits!`);
-            //     break;
+            case 'redeem':
+            case 'cheer':
+                // ignoring these types from TMI as we handle it with the PubSub now
+                break;
             case 'command':
                 processCommand(event.command, event);
                 ev(event, `${lh(event.username)} issued '${lh(event.command)}', '${lh(event.message)}'`);
