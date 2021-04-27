@@ -7,9 +7,10 @@ const obs = new OBSWebsocket();
 
 async function connectToOBS() {
     const { obsWebsocket } = getCurrentSettings();
-    obs.connect(obsWebsocket);
 
     const prom = new PromWrap();
+
+    obs.connect(obsWebsocket).catch(err => prom.reject(err));
 
     obs.on('AuthenticationSuccess', () => {
         logMuted('Connected to OBS');

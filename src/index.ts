@@ -6,7 +6,7 @@ import { processCommand } from './commands/commands';
 import obs from './obs-websocket/obs-websocket';
 import pubsub from './pubsub/pubsub';
 import { logError, logMuted } from './utils/log';
-import { lh } from './utils/utils';
+import { lh, tryAwait } from './utils/utils';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
@@ -47,7 +47,10 @@ async function start() {
     await chatBot.start();
 
     // wait to connect to OBS
-    await obs.start();
+    const [obsErr] = await tryAwait(() => obs.start());
+    if (obsErr) {
+        logError(`Could not connect to OBS`, obsErr);
+    }
 
     // connect to Twitch PubSub
     try {
@@ -83,6 +86,12 @@ async function start() {
                 checkFirstArrival(event.username);
                 ev(event, `${lh(event.username)} says '${lh(event.message)}'`);
                 break;
+            case 'raided':
+                ev(event, `${lh(event.username)} with '${lh(event.viewers)} viewers'`);
+                break;
+            default:
+                console.log(event);
+                break;
         }
 
     });
@@ -106,8 +115,6 @@ process.on('SIGTERM', stop);
 (async () => {
 
     await start();
-
-    // obs.getSourcesList().then(list => console.log(list));
 
     logMuted('Started application');
 

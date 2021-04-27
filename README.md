@@ -123,13 +123,25 @@ See the "What is a Scene" section for more information about the individual task
 
 With a command trigger, you will need to supply the `command` which triggers it. This command will be issues in chat like `!command Hello!` though when writing your rule, exclude the leading exclamation point as well as any text after the command.
 
-You can optionally control which type of user has permission to issue the command. The `vip` and `moderator` properties, when true, will prevent access. Note that moderators can execute vip tasks.
+The following are optional properties
+
+| Property             | Description                                                                                                        |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|
+| disabled             | If true, the command will be disabled                                                                              |
+| restrictions         | Restricts who can issue the command. See **User Permissions** for info                                             |
+| delayBetweenCommands | A buffer between executions of the same command, in seconds.                                                       |
+| ignoreDuplicates     | If true, it will ignore commands issued while there is either a command actively playing, or queued to be executed |
+
 
 ```json
 "commandTriggers": [
     {
         "command": "test",
-        "moderator": true,
+        "restrictions": {
+            "moderator": true,
+        },
+        "delayBetweenCommands": 10,
+        "ignoreDuplicates": true,
         "directives": [
             {
                 "type": "chat",
@@ -158,15 +170,39 @@ You can optionally control which type of user has permission to issue the comman
 The above command trigger will: 
 1. Trigger when `!test` is issued in chat
 2. Be available for moderators only
-3. Immediately 
+3. Will be rejected if there's another command like this queued
+4. Will wait until at least 10 seconds after the last command of this type ran
+5. When executed, will immediately 
    1. say "Hello, user" in chat
    2. start playing the audio file
    3. turn on the "Image" source in OBS
-4. 3 seconds later
+6. Then, 3 seconds later
    1. say "Goodbye, user" in chat
    2. turn off the "Image" source in OBS
+   
 
 If the audio clip is longer than 3 seconds, the trigger will not conclude until it has finished playing.
+
+### User Permissions
+
+For features which can be restricted by the user's information. 
+
+```json
+{
+    "broadcaster": true,
+    "moderator" : true,
+    "subscriber" : true,
+    "vip": true
+}
+```
+
+| User Is     |  VIP  | Subscriber | Moderator | Broadcaster | Regular |
+| ----------- | :---: | :--------: | :-------: | :---------: | :-----: |
+| Broadcaster |   O   |     O      |     O     |      O      |    O    |
+| Moderator   |   O   |     O      |     O     |             |    O    |
+| Subscriber  |       |     O      |           |             |    O    |
+| VIP         |   O   |            |           |             |    O    |
+| Regular     |       |            |           |             |    O    |
 
 
 ### What is a Scene?

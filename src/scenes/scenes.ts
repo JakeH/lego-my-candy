@@ -6,21 +6,24 @@ import { AllSceneTypes, SceneContext } from './scenes.models';
 
 function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Promise<void> {
 
-    const promises = scenes.map(s => {
+    const promises = scenes.map(async s => {
 
         const delay = wait((s.delayInSeconds || 0) * 1000);
 
         switch (s.type) {
             case 'audio':
-                return delay.then(() => audio.play(s.filename));
+                await delay;
+                return await audio.play(s.filename);
 
             case 'chat':
                 const message = tokenStringParser(s.message, context);
-                return delay.then(() => chatbot.say(message));
+                await delay;
+                return chatbot.say(message);
 
             case 'obs':
                 const { durationInSeconds, sceneName, sourceName } = s;
-                return delay.then(() => obs.pulseSource(sourceName, sceneName, durationInSeconds));
+                await delay;
+                return await obs.pulseSource(sourceName, sceneName, durationInSeconds);
 
         }
     });
@@ -29,6 +32,9 @@ function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Pr
 
 }
 
-export async function processScene(scenes: AllSceneTypes[], context: SceneContext): Promise<void> {
-    return addToQueue(() => privateProcessScene(scenes, context));
+export async function processScene(scenes: AllSceneTypes[], context: SceneContext, before?: () => Promise<void>): Promise<void> {
+    return addToQueue(() => {
+        return (before || Promise.resolve)()
+            .then(() => privateProcessScene(scenes, context));
+    });
 }

@@ -1,30 +1,42 @@
-import { AllSceneTypes } from 'scenes/scenes.models';
+import { UserRestrictions } from '../utils/user-restrictions';
+import { UserInfo } from '../chat-bot/chat-bot.models';
+import { AllSceneTypes } from '../scenes/scenes.models';
 
-export interface CommandContext {
-    username: string;
-    moderator: boolean;
-    vip: boolean;
+export type CommandContext = UserInfo & {
     sent: Date;
-}
+};
 
 export interface CommandDirective {
+
     /**
      * The command text (minus the leading !) which triggers this directive
      */
     command: string;
 
     /**
-     * If true, only moderators can trigger this command
+     * Restricts this command to specific user types
      */
-    moderator?: boolean;
-
-    /**
-     * If true, only VIP can trigger this command
-     */
-    vip?: boolean;
+    restrictions?: UserRestrictions;
 
     /**
      * The scene directive to invoke for this command
      */
     directives: AllSceneTypes[];
+
+    /**
+     * If true, commands will be ignored if this is currently active 
+     * or in the queue.
+     */
+    ignoreDuplicates?: boolean;
+
+    /**
+     * A delay, in seconds, between subsequent commands of the same type
+     */
+    delayBetweenCommands?: number;
+
+    /**
+     * If true, the command will be disabled
+     */
+    disabled?: boolean;
+
 }

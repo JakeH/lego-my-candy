@@ -28,15 +28,25 @@ function loadSettings() {
     logMuted('Loaded settings file');
 }
 
+let debounceTimerRef: NodeJS.Timeout;
+
 // call before watch
 ensureExists();
 watch(settingsFile, (event, filename) => {
     if (filename && event === 'change') {
-        if (!skipNextReload) {
-            logMuted(`Settings file changed, reloading`);
-            loadSettings();
-        }
-        skipNextReload = false;
+
+        clearTimeout(debounceTimerRef);
+
+        debounceTimerRef = setTimeout(() => {
+
+            // still need this check inside of the debounce
+            if (!skipNextReload) {
+                logMuted(`Settings file changed, reloading`);
+                loadSettings();
+            }
+            skipNextReload = false;
+
+        }, 50);
     }
 });
 
