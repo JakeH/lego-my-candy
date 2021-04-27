@@ -38,7 +38,6 @@
     "rxjs": "^6.6.7",
     "say": "^0.16.0",
     "sequential-task-queue": "^1.2.1",
-    "simple-oauth2": "^4.2.0",
     "tmi.js": "^1.8.3",
     "ws": "^7.4.5"
   }
