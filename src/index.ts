@@ -1,16 +1,55 @@
-import { AllEventTypes } from 'chat-bot/chat-bot.models';
+import { AllEventTypes } from './chat-bot/chat-bot.models';
 import { bgRed } from 'kleur';
+import { upgradeSettings } from './settings/settings';
 import { checkFirstArrival } from './arrivals/arrivals';
 import chatBot from './chat-bot/chat-bot';
-import { processCommand } from './commands/commands';
+import { processBitCommand, processCommand, processPointCommand } from './commands/commands';
+import { CommandContext } from './commands/commands.model';
 import obs from './obs-websocket/obs-websocket';
+import pubsub from './pubsub/pubsub';
 import { logError, logMuted } from './utils/log';
 import { lh, tryAwait } from './utils/utils';
+import { EMPTY, of } from 'rxjs';
+import { filter, take, takeWhile } from 'rxjs/operators';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
-
     logMuted(`${eventName} ${message}`);
+}
+
+async function startPubSub() {
+    // allow this to throw errors
+    const client = pubsub.getClient();
+    await client.connect();
+    await client.startListening();
+
+    client.events$.subscribe(event => {
+        const eventName = bgRed().bold().white(event.type.toUpperCase());
+        let message = '';
+
+        switch (event.type) {
+            case 'bits':
+                processBitCommand(event.data.bits_used, {
+                    username: event.data.user_name
+                } as CommandContext);
+
+                message = `${lh(event.data.user_name || 'anon')} cheered ${lh(event.data.bits_used)} bits!`;
+                break;
+
+            case 'points':
+                processPointCommand(event.data.redemption.reward.title, {
+                    username: event.data.redemption.user.display_name
+                } as CommandContext);
+
+                message = `${lh(event.data.redemption.user.display_name)} redeemed ${lh(event.data.redemption.reward.title)}`;
+                break;
+
+            case 'sub':
+                return;
+        }
+
+        logMuted(`${eventName} ${message}`);
+    });
 }
 
 /**
@@ -22,8 +61,15 @@ async function start() {
 
     // wait to connect to OBS
     const [obsErr] = await tryAwait(() => obs.start());
-    if (obsErr){
+    if (obsErr) {
         logError(`Could not connect to OBS`, obsErr);
+    }
+
+    // connect to Twitch PubSub
+    try {
+        startPubSub();
+    } catch (error) {
+        logError('Cannot start pubsub listener', error);
     }
 
     // listen for chat events...
@@ -33,10 +79,8 @@ async function start() {
 
         switch (event.type) {
             case 'redeem':
-                ev(event, `${lh(event.username)} redeemed '${lh(event.rewardType)}'`);
-                break;
             case 'cheer':
-                ev(event, `${lh(event.username)} cheered ${lh(event.amount)} bits!`);
+                // ignoring these types from TMI as we handle it with the PubSub now
                 break;
             case 'command':
                 processCommand(event.command, event);
@@ -60,6 +104,7 @@ async function start() {
                 console.log(event);
                 break;
         }
+
     });
 
 }
@@ -69,6 +114,7 @@ async function start() {
  */
 async function stop() {
     await chatBot.stop();
+    await pubsub.stop();
     process.exit(0);
 }
 
@@ -79,8 +125,13 @@ process.on('SIGTERM', stop);
 // entry point
 (async () => {
 
-    await start();
+    if (upgradeSettings()) {
+        logError('Your settings were upgraded. Please ensure the file contents are correct and launch again');
+        process.exit(0);
+    }
 
-    logMuted('Started application');
+    logMuted('Starting application');
+
+    await start();
 
 })();

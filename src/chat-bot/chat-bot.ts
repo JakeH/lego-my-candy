@@ -8,7 +8,8 @@ import {
     Options as tmiOptions
 } from 'tmi.js';
 import { AllEventTypes, UserInfo } from './chat-bot.models';
-import { logMuted } from '../utils/log';
+import { logMuted, logSuccess } from '../utils/log';
+import { PromWrap } from '../utils/utils';
 
 let hostChannel = '';
 let client: Client;
@@ -50,20 +51,17 @@ function createTMIClient(): Promise<void> {
     client.on('part', onPartHandler);
     client.on('raided', onRaidedHandler);
 
-    let resolve: () => void;
-    const prom = new Promise<void>(res => {
-        resolve = res;
-    });
+    const prom = new PromWrap();
 
     client.on('connected', () => {
-        resolve();
-        logMuted(`Chat bot connected to '${hostChannel}'`);
+        prom.resolve();
+        logSuccess(`Chat bot connected to '${hostChannel}'`);
     });
 
     // connect to Twitch
     client.connect();
 
-    return prom;
+    return prom.toPromise();
 }
 
 function parseBadges(badges: Badges): { [key in keyof Badges]: boolean } {

@@ -12,18 +12,15 @@ function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Pr
 
         switch (s.type) {
             case 'audio':
-                await delay;
-                return await audio.play(s.filename);
+                return delay.then(() => audio.play(s.filename));
 
             case 'chat':
                 const message = tokenStringParser(s.message, context);
-                await delay;
-                return chatbot.say(message);
+                return delay.then(() => chatbot.say(message));
 
             case 'obs':
                 const { durationInSeconds, sceneName, sourceName } = s;
-                await delay;
-                return await obs.pulseSource(sourceName, sceneName, durationInSeconds);
+                return delay.then(() => obs.pulseSource(sourceName, sceneName, durationInSeconds));
 
         }
     });
@@ -34,7 +31,7 @@ function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Pr
 
 export async function processScene(scenes: AllSceneTypes[], context: SceneContext, before?: () => Promise<void>): Promise<void> {
     return addToQueue(() => {
-        return (before || Promise.resolve)()
+        return (before ? before() : Promise.resolve())
             .then(() => privateProcessScene(scenes, context));
     });
 }

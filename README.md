@@ -183,6 +183,64 @@ The above command trigger will:
 
 If the audio clip is longer than 3 seconds, the trigger will not conclude until it has finished playing.
 
+### Bits Commands
+
+In your `app.settings.json` file, add settings for each command you wish to activate a scene for.
+
+See the "What is a Scene" section for more information about the individual tasks that comprise a scene.
+
+With a bit trigger, you will need to supply the `minAmount` which triggers it. The trigger with the highest `minAmount` which the bit cheer passes will be used. 
+
+The following are optional properties
+
+| Property             | Description                                                                                                        |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|
+| disabled             | If true, the command will be disabled                                                                              |
+
+
+```json
+"bitTriggers": [
+    {
+        "minAmount": 0,
+        "directives": [
+            {
+                "type": "chat",
+                "message": "{{username}} cheered {{amount}} bits"
+            }
+        ]
+    }
+]
+```
+
+### Points Commands
+
+In your `app.settings.json` file, add settings for each command you wish to activate a scene for.
+
+See the "What is a Scene" section for more information about the individual tasks that comprise a scene.
+
+With a point trigger, you will need to supply the `rewardTitle` which triggers it. Casing does not matter, but it should otherwise be the complete title.
+
+The following are optional properties
+
+| Property             | Description                                                                                                        |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|
+| disabled             | If true, the command will be disabled                                                                              |
+
+
+```json
+"pointTriggers": [
+    {
+        "rewardTitle": "Posture Check!",
+        "directives": [
+            {
+                "type": "chat",
+                "message": "{{username}} redeemed {{rewardTitle}}"
+            }
+        ]
+    }
+]
+```
+
 ### User Permissions
 
 For features which can be restricted by the user's information. 

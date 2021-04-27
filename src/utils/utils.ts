@@ -62,3 +62,35 @@ export function tokenStringParser<T extends object>(input: string, values: T): s
 export function lh(input: string | number) {
     return bgBlack().bold().cyan(input);
 }
+
+export class PromWrap<T = void> {
+
+    private _resolve: (value: T) => void;
+    private _reject: (error: Error) => void;
+
+    public hasBeenRejected = false;
+    public hasBeenResolved = false;
+
+    private _promise: Promise<T>;
+
+    constructor() {
+        this._promise = new Promise<T>((res, rej) => {
+            this._resolve = res;
+            this._reject = rej;
+        });
+    }
+
+    public resolve(value: T) {
+        this.hasBeenResolved = true;
+        this._resolve(value);
+    }
+
+    public reject(error: Error) {
+        this.hasBeenRejected = true;
+        this._reject(error);
+    }
+
+    public toPromise(): Promise<T> {
+        return this._promise;
+    }
+}

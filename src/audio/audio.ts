@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import { existsSync } from 'fs';
+import { PromWrap } from '../utils/utils';
 import { logError } from '../utils/log';
 
 const bin = './.bin/ffplay.exe';
@@ -22,16 +23,12 @@ async function play(filename: string): Promise<void> {
         stdio: ['ignore', 'ignore', 'ignore']
     });
 
-    let resolve: () => void;
-    let reject: (err: Error) => void;
+    const prom = new PromWrap();
 
-    process.on('error', err => reject(err));
-    process.on('exit', () => resolve());
+    process.on('error', err => prom.reject(err));
+    process.on('exit', () => prom.resolve());
 
-    return new Promise((res, rej) => {
-        resolve = res;
-        reject = rej;
-    });
+    return prom.toPromise();
 
 }
 

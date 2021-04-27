@@ -1,28 +1,23 @@
 import * as OBSWebsocket from 'obs-websocket-js';
-import { tryAwait, wait } from '../utils/utils';
+import { PromWrap, tryAwait, wait } from '../utils/utils';
 import { getCurrentSettings } from '../settings/settings';
-import { logError, logMuted } from '../utils/log';
+import { logError, logMuted, logSuccess } from '../utils/log';
 
 const obs = new OBSWebsocket();
 
 async function connectToOBS() {
     const { obsWebsocket } = getCurrentSettings();
 
-    let resolve: (x?: any) => void;
-    let reject: (err: Error) => void;
-    const prom = new Promise((res, rej) => {
-        resolve = res;
-        reject = rej;
-    });
+    const prom = new PromWrap();
 
-    obs.connect(obsWebsocket).catch(reject);
+    obs.connect(obsWebsocket).catch(err => prom.reject(err));
 
     obs.on('AuthenticationSuccess', () => {
-        logMuted('Connected to OBS');
-        resolve();
+        logSuccess('Connected to OBS');
+        prom.resolve();
     });
 
-    return prom;
+    return prom.toPromise();
 }
 
 export default {

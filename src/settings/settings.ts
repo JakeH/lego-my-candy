@@ -1,11 +1,13 @@
 import { AppSettings } from './settings.models';
 import { watch, readFileSync, existsSync } from 'fs';
 import { join as pathJoin } from 'path';
-import { logError, logMuted } from '../utils/log';
+import { logError, logMuted, logSuccess } from '../utils/log';
+import { writeFileSync } from 'fs';
 
 const settingsFile = pathJoin(process.cwd(), './app.settings.json');
 
 let appSettings: AppSettings = null;
+let skipNextReload = false;
 
 function ensureExists() {
     if (!existsSync(settingsFile)) {
@@ -23,7 +25,7 @@ function loadSettings() {
     appSettings = JSON.parse(readFileSync(settingsFile).toString());
     delete appSettings['$schema'];
 
-    logMuted('Loaded settings file');
+    logSuccess('Loaded settings file');
 }
 
 let debounceTimerRef: NodeJS.Timeout;
@@ -32,18 +34,83 @@ let debounceTimerRef: NodeJS.Timeout;
 ensureExists();
 watch(settingsFile, (event, filename) => {
     if (filename && event === 'change') {
+
         clearTimeout(debounceTimerRef);
 
         debounceTimerRef = setTimeout(() => {
-            logMuted(`Settings file changed, reloading`);
-            loadSettings();
+
+            // still need this check inside of the debounce
+            if (!skipNextReload) {
+                logMuted(`Settings file changed, reloading`);
+                loadSettings();
+            }
+            skipNextReload = false;
+
         }, 50);
     }
 });
+
+export function saveSettings(skipReload: boolean) {
+    skipNextReload = skipReload;
+    writeFileSync(settingsFile, JSON.stringify(appSettings, null, 4));
+}
 
 export function getCurrentSettings(): AppSettings {
     if (!appSettings) {
         loadSettings();
     }
     return appSettings;
+}
+
+export function upgradeSettings(): boolean {
+
+    const settings = getCurrentSettings();
+    let updated = false;
+
+    if (!settings.pubsub) {
+        settings.pubsub = {
+            authToken: '',
+            refreshToken: '',
+            clientId: '',
+        };
+
+        updated = true;
+    }
+
+    if (!settings.bitTriggers) {
+        settings.bitTriggers = [];
+        updated = true;
+    }
+
+    if (!settings.pointTriggers) {
+        settings.pointTriggers = [];
+        updated = true;
+    }
+
+    if (!settings.streamElements) {
+        settings.streamElements = {
+            token: '',
+        };
+        updated = true;
+    }
+
+    if (updated) {
+        // sorting just because
+        const {
+            channel, identity, pubsub, streamElements,
+            obsWebsocket, arrivalNotifications,
+            commandTriggers, bitTriggers, pointTriggers,
+        } = settings;
+
+        appSettings = {
+            channel, identity, pubsub, streamElements,
+            obsWebsocket, arrivalNotifications,
+            commandTriggers, bitTriggers, pointTriggers,
+        };
+
+        saveSettings(true);
+    }
+
+    return updated;
+
 }

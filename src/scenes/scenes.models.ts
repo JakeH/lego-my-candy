@@ -6,6 +6,11 @@ export interface SceneContext {
      * The user who is the focus of this scene
      */
     username: string;
+
+    /**
+     * Other arbitrary information
+     */
+    [key: string]: any;
 }
 
 interface SceneDirectiveBase {

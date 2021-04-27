@@ -1,7 +1,6 @@
 import { UserJoinedSourceActivation } from 'arrivals/arrivals.models';
-import { CommandDirective } from 'commands/commands.model';
+import { BitCommandDirective, CommandDirective, PointCommandDirective } from 'commands/commands.model';
 import { OBSWebsocketCredentials } from 'obs-websocket/obs-websocket.models';
-import { AllSceneTypes } from 'scenes/scenes.models';
 
 export interface AppSettings {
 
@@ -32,6 +31,31 @@ export interface AppSettings {
         clientId: string;
     };
 
+    /**
+     * Authentication details for the Twitch PubSub integration
+     */
+    pubsub: {
+
+        /**
+         * Twitch app client id.
+         * 
+         * See the README.md for more information
+         */
+        clientId: string;
+
+        /**
+         * OAuth token for pubsub. 
+         * 
+         */
+        authToken: string;
+
+        /**
+         * OAuth refresh token for pubsub.
+         */
+        refreshToken: string;
+
+    };
+
     streamElements?: {
 
         /**
@@ -55,5 +79,15 @@ export interface AppSettings {
      * A list of scenes to trigger based on a command
      */
     commandTriggers?: CommandDirective[];
+
+    /**
+     * A list of scenes to trigger based on bit cheers
+     */
+    bitTriggers?: BitCommandDirective[];
+
+    /**
+     * A list of scenes to trigger based on channel point redemptions
+     */
+    pointTriggers?: PointCommandDirective[];
 
 }
