@@ -1,5 +1,5 @@
 import * as OBSWebsocket from 'obs-websocket-js';
-import { tryAwait, wait } from '../utils/utils';
+import { PromWrap, tryAwait, wait } from '../utils/utils';
 import { getCurrentSettings } from '../settings/settings';
 import { logError, logMuted } from '../utils/log';
 
@@ -8,17 +8,15 @@ const obs = new OBSWebsocket();
 async function connectToOBS() {
     const { obsWebsocket } = getCurrentSettings();
     obs.connect(obsWebsocket);
-    let resolve: (x?: any) => void;
-    const prom = new Promise((res) => {
-        resolve = res;
-    });
+
+    const prom = new PromWrap();
 
     obs.on('AuthenticationSuccess', () => {
         logMuted('Connected to OBS');
-        resolve();
+        prom.resolve();
     });
 
-    return prom;
+    return prom.toPromise();
 }
 
 export default {

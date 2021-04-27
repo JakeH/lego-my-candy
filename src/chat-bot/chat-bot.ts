@@ -8,6 +8,7 @@ import {
 } from 'tmi.js';
 import { AllEventTypes } from './chat-bot.models';
 import { logMuted } from '../utils/log';
+import { PromWrap } from '../utils/utils';
 
 let hostChannel = '';
 let client: Client;
@@ -48,20 +49,17 @@ function createTMIClient(): Promise<void> {
     client.on('join', onJoinHandler);
     client.on('part', onPartHandler);
 
-    let resolve: () => void;
-    const prom = new Promise<void>(res => {
-        resolve = res;
-    });
+    const prom = new PromWrap();
 
     client.on('connected', () => {
-        resolve();
+        prom.resolve();
         logMuted(`Chat bot connected to '${hostChannel}'`);
     });
 
     // connect to Twitch
     client.connect();
 
-    return prom;
+    return prom.toPromise();
 }
 
 function extractInfo(context: ChatUserstate): {
