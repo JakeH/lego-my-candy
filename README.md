@@ -127,6 +127,7 @@ The following are optional properties
 
 | Property             | Description                                                                                                        |
 |----------------------|--------------------------------------------------------------------------------------------------------------------|
+| disabled             | If true, the command will be disabled                                                                              |
 | restrictions         | Restricts who can issue the command. See **User Permissions** for info                                             |
 | delayBetweenCommands | A buffer between executions of the same command, in seconds.                                                       |
 | ignoreDuplicates     | If true, it will ignore commands issued while there is either a command actively playing, or queued to be executed |
