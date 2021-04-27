@@ -2,10 +2,12 @@ import { AppSettings } from './settings.models';
 import { watch, readFileSync, existsSync } from 'fs';
 import { join as pathJoin } from 'path';
 import { logError, logMuted } from '../utils/log';
+import { writeFileSync } from 'fs';
 
 const settingsFile = pathJoin(process.cwd(), './app.settings.json');
 
 let appSettings: AppSettings = null;
+let skipNextReload = false;
 
 function ensureExists() {
     if (!existsSync(settingsFile)) {
@@ -30,10 +32,18 @@ function loadSettings() {
 ensureExists();
 watch(settingsFile, (event, filename) => {
     if (filename && event === 'change') {
-        logMuted(`Settings file changed, reloading`);
-        loadSettings();
+        if (!skipNextReload) {
+            logMuted(`Settings file changed, reloading`);
+            loadSettings();
+        }
+        skipNextReload = false;
     }
 });
+
+export function saveSettings(skipReload: boolean) {
+    skipNextReload = skipReload;
+    writeFileSync(settingsFile, JSON.stringify(appSettings, null, 4));
+}
 
 export function getCurrentSettings(): AppSettings {
     if (!appSettings) {

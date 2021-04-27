@@ -1,5 +1,25 @@
 
-export type MessageTypes = 'MESSAGE' | 'PING' | 'PONG' | 'LISTEN' | 'RESPONSE';
+export interface TokenRefreshResponse {
+    success: boolean;
+    token: string;
+    refresh: string;
+    client_id: string;
+}
+
+export interface TwitchAuthToken {
+    client_id: string;
+    login: string;
+    scopes: string[];
+    user_id: string;
+    expires_in: number;
+
+    /**
+     * Augemented, not part of the validate response
+     */
+    token: string;
+}
+
+export type MessageTypes = 'MESSAGE' | 'PING' | 'PONG' | 'LISTEN' | 'UNLISTEN' | 'RESPONSE' | 'RECONNECT';
 
 export interface PubSubBasicRequest {
     type: MessageTypes;
@@ -39,6 +59,33 @@ export interface PubSubEventBase {
 
 export interface PubSubBitEvent extends PubSubEventBase {
     readonly type: 'bits';
+    readonly data: {
+        /**
+         * Number of Bits used.
+         */
+        bits_used: number;
+
+        /**
+         * Chat message sent with the cheer.
+         */
+        chat_message: string;
+
+        /**
+         * All-time total number of Bits used on this channel by the specified user.
+         */
+        total_bits_used: number;
+
+        /**
+         * User ID of the person who used the Bits - if the cheer was not anonymous. Null if anonymous.
+         */
+        user_id: string | null;
+
+        /**
+         * Login name of the person who used the Bits - if the cheer was not anonymous. Null if anonymous
+         */
+        user_name: string | null;
+    };
+    readonly is_anonymous: boolean;
 }
 
 export interface PubSubPointEvent extends PubSubEventBase {
@@ -47,6 +94,20 @@ export interface PubSubPointEvent extends PubSubEventBase {
 
 export interface PubSubSubEvent extends PubSubEventBase {
     readonly type: 'sub';
+
+    readonly data: {
+        user_name: string;
+        display_name: string;
+        user_id: string;
+        cumulative_months: number;
+        streak_months: number;
+        is_gift: boolean;
+
+        // if a gift sub
+        recipient_id?: string;
+        recipient_user_name?: string;
+        recipient_display_name?: string;
+    };
 }
 
 export type PubSubEvents = PubSubBitEvent | PubSubPointEvent | PubSubSubEvent;

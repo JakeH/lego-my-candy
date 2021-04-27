@@ -1,10 +1,16 @@
-import * as WebSocket from 'ws';
-import { AccessToken, ClientCredentials, ModuleOptions, Token } from 'simple-oauth2';
-import { getCurrentSettings } from '../settings/settings';
-import { MessageTypes, PubSubBasicRequest, PubSubEventMessage, PubSubEvents, PubSubEventTypes, PubSubRequest, PubSubRequestBody, PubSubResponse } from './pubsub.models';
+import axios, { AxiosError } from 'axios';
 import { randomBytes } from 'crypto';
 import { Observable, Subject } from 'rxjs';
-import { filter, map, take } from 'rxjs/operators';
+import { filter, map, take, takeWhile } from 'rxjs/operators';
+import { logError, logMuted } from '../utils/log';
+import * as WebSocket from 'ws';
+import { getCurrentSettings, saveSettings } from '../settings/settings';
+import { PromWrap, tryAwait, wait } from '../utils/utils';
+import {
+    MessageTypes, PubSubBasicRequest, PubSubEventMessage,
+    PubSubEvents, PubSubEventTypes, PubSubRequest, PubSubRequestBody,
+    PubSubResponse, TokenRefreshResponse, TwitchAuthToken
+} from './pubsub.models';
 
 // https://dev.twitch.tv/docs/pubsub
 // https://dev.twitch.tv/docs/authentication/getting-tokens-oauth
@@ -16,15 +22,6 @@ const expectedScopes = [
     'channel:read:subscriptions',
 ];
 
-/**
- * 
- * Token validity
- * Token refresh
- * Ping / Pong / reconnect
- * Listener
- * 
- */
-
 const eventMapping: {
     prefix: string;
     type: PubSubEventTypes;
@@ -32,54 +29,40 @@ const eventMapping: {
         {
             prefix: 'channel-bits-events-v2',
             type: 'bits',
+        },
+        {
+            prefix: 'channel-points-channel-v1',
+            type: 'points',
+        },
+        {
+            prefix: 'channel-subscribe-events-v1',
+            type: 'sub',
         }
     ];
 
-class PromWrap<T = void> {
-
-    private _resolve: (value: T) => void;
-    private _reject: (error: Error) => void;
-
-    private _promise: Promise<T>;
-
-    constructor() {
-        this._promise = new Promise<T>((res, rej) => {
-            this._resolve = res;
-            this._reject = rej;
-        });
-    }
-
-    public resolve(value: T) {
-        this._resolve(value);
-    }
-
-    public reject(error: Error) {
-        this._reject(error);
-    }
-
-    public toPromise(): Promise<T> {
-        return this._promise;
-    }
-}
+const PING_INTERVAL = 3 * 60e3;
+const PONG_TIMEOUT = 30e3;
 
 class PubSubClient {
 
-    private ws: WebSocket;
-    private outgoingQueue;
-
+    public readonly events$: Observable<PubSubEvents>;
+   
     private isConnected = false;
-    private hasListener = false;
     private lastPong = 0;
     private pingTimerRef: NodeJS.Timeout;
-
-    public readonly events$: Observable<PubSubEvents>;
-
+    private authToken: TwitchAuthToken;
+    
+    private ws: WebSocket;
     private readonly messages$ = new Subject<PubSubResponse>();
 
     constructor() {
         this.events$ = this.messages$.pipe(
             filter(message => message.type === 'MESSAGE'),
             map((message: PubSubEventMessage) => {
+
+                // TODO: have no idea what the points message will actually look like
+                console.log(message);
+
                 const { data } = message;
                 const mapping = eventMapping.find(o => data.topic.startsWith(o.prefix));
                 if (!mapping) {
@@ -93,48 +76,166 @@ class PubSubClient {
                     ...parsedMessage,
                 } as PubSubEvents;
 
-                return null;
             }),
             filter(message => message !== null),
         );
+
     }
 
-    private connect() {
+    public async connect() {
 
-        ws.on('message', (data: string) => {
+        await this.validateToken(true);
+
+        this.ws = new WebSocket('wss://pubsub-edge.twitch.tv');
+
+        this.ws.on('message', (data: string) => {
 
             const message: PubSubResponse = JSON.parse(data);
+
+            console.log(message);
+
+            if (message.type === 'PONG') {
+                this.isConnected = true;
+                this.lastPong = Date.now();
+                return;
+            } else if (message.type === 'RECONNECT') {
+                this.reconnect();
+                return;
+            }
 
             this.messages$.next(message);
 
         });
+
+        this.pingTimerRef = setInterval(() => {
+
+            this.internalSendBasic({ type: 'PING' });
+
+            setTimeout(() => { this.pongCheck(); }, PONG_TIMEOUT);
+
+        }, PING_INTERVAL);
+
+        this.ws.on('close', () => {
+            clearInterval(this.pingTimerRef);
+            this.isConnected = false;
+        });
+
+        this.ws.on('open', () => {
+            this.internalSendBasic({ type: 'PING' });
+        });
+
+    }
+
+    public async disconnect() {
+        this.isConnected = false;
+        clearInterval(this.pingTimerRef);
+        this.ws?.close();
+        await this.stopListening();
     }
 
     private reconnect() {
+        this.isConnected = false;
+        clearInterval(this.pingTimerRef);
+        this.connect();
+    }
+
+    private pongCheck() {
+        const since = Date.now() - this.lastPong;
+        if (since > PONG_TIMEOUT) {
+            this.reconnect();
+        }
+
+    }
+
+    private async refreshToken() {
+        const { pubsub } = getCurrentSettings();
+
+        const [] = await tryAwait(() => {
+            // don't care if this fails or succeeds
+            // try to kill the current auth token when refreshing
+            return axios.get(`https://twitchtokengenerator.com/api/revoke/${pubsub.authToken}`);
+        });
+
+        return axios.get<TokenRefreshResponse>(`https://twitchtokengenerator.com/api/refresh/${pubsub.refreshToken}`)
+            .then(response => {
+                pubsub.authToken = response.data.token;
+                saveSettings(true);
+                logMuted('Refreshed PubSub auth token');
+            });
+
+    }
+
+    private async validateToken(retry: boolean) {
+        const { pubsub } = getCurrentSettings();
+
+        const [err, res] = await tryAwait(() => {
+            return axios.get<TwitchAuthToken>('https://id.twitch.tv/oauth2/validate', {
+                headers: {
+                    'Authorization': `Bearer ${pubsub.authToken}`
+                }
+            });
+        });
+
+        const shouldRefresh = retry === true
+            && ((err as AxiosError)?.response?.status === 401
+                || res?.data.expires_in !== 0);
+
+        if (shouldRefresh) {
+
+            this.authToken = null;
+
+            logError(`PubSub auth token expired, refreshing`);
+
+            const [refreshError] = await tryAwait(() => {
+                return this.refreshToken();
+            });
+
+            if (!refreshError) {
+                await this.validateToken(false);
+            }
+
+        }
+
+        if (res) {
+            console.log(res.data);
+            this.authToken = {
+                ...res.data,
+                token: pubsub.authToken,
+            };
+        }
 
     }
 
     private internalSendBasic(basic: PubSubBasicRequest) {
-
+        this.ws.send(JSON.stringify(basic));
     }
 
-    public sendMessage(type: MessageTypes, body: PubSubRequestBody) {
+    private async sendMessage(type: MessageTypes, body: PubSubRequestBody) {
+        let waitCount = 0;
+        while (!this.isConnected) {
+            if (waitCount++ > 20) {
+                return Promise.reject('PubSub connect timeout');
+            }
+            await wait(100);
+        }
+
         const nonce = randomBytes(16).toString('hex');
         const request: PubSubRequest = {
             type,
             nonce,
             data: {
-                auth_token: '',
+                auth_token: this.authToken.token,
                 ...body,
             }
         };
 
         const wrap = new PromWrap();
 
-        ws.send(JSON.stringify(request), wrap.reject);
+        this.ws.send(JSON.stringify(request), err => err && wrap.reject(err));
 
         this.messages$.pipe(
             filter(m => m.type === 'RESPONSE' && m.nonce === nonce),
+            takeWhile(() => wrap.hasBeenRejected === false),
             take(1),
         ).subscribe(message => {
             if (message.error) {
@@ -147,89 +248,30 @@ class PubSubClient {
         return wrap.toPromise();
     }
 
-}
-
-const pingInterval = 3 * 60e3;
-const pongTimeout = 30e3;
-let lastPong = 0;
-let ws: WebSocket;
-
-let pingTimerRef: NodeJS.Timeout;
-
-const hasListener = false;
-
-async function start() {
-    await connect();
-}
-
-async function connect() {
-    ws = new WebSocket('wss://pubsub-edge.twitch.tv');
-
-    pingTimerRef = setInterval(() => {
-
-        sendSimple('PING');
-
-        setTimeout(pongCheck, pongTimeout);
-
-    }, pingInterval);
-
-    ws.on('close', () => {
-        clearInterval(pingTimerRef);
-    });
-
-    ws.on('message', onMessage);
-
-    ws.on('open', () => {
-        sendSimple('PING');
-    });
-}
-
-async function reconnect() {
-    clearInterval(pingInterval);
-    if (ws) {
-        ws.close();
-        ws = null;
+    public async startListening() {
+        const { user_id } = this.authToken;
+        await this.sendMessage('LISTEN', {
+            topics: eventMapping.map(o => `${o.prefix}.${user_id}`)
+        });
     }
 
-    connect();
-}
-
-function onMessage(data: string) {
-    const message: PubSubResponse = JSON.parse(data);
-
-    if (message.type === 'PONG') {
-        lastPong = Date.now();
+    public async stopListening() {
+        const { user_id } = this.authToken;
+        await this.sendMessage('UNLISTEN', {
+            topics: eventMapping.map(o => `${o.prefix}.${user_id}`)
+        }).catch(() => { /* no-op */ });
     }
 
-    console.log(data, message);
 }
 
-function pongCheck() {
-    const since = Date.now() - lastPong;
-    if (since > pongTimeout) {
-        reconnect();
-    }
-}
-
-function sendSimple(type: MessageTypes) {
-    ws.send(JSON.stringify({ type }));
-}
-
-async function sendMessage(type: MessageTypes, body: PubSubRequestBody) {
-    const request: PubSubRequest = {
-        type,
-        data: {
-            ...body,
-            auth_token: 'bp03hi607w4fc57yq3le6ytqzn7wa9',
-        }
-    };
-
-    console.log(request);
-    ws.send(JSON.stringify(request));
-}
+let client: PubSubClient;
 
 export default {
-    start,
-    sendMessage,
+    getClient: () => {
+        if (!client) {
+            client = new PubSubClient();
+        }
+        return client;
+    }
 
 };
