@@ -7,7 +7,7 @@ import { grey, white } from 'kleur';
  * @param args 
  */
 export function logError(message: string, ...args: any[]) {
-    console.error(white().bgRed(message + '\n'), ...args);
+    console.error(white().bgRed(message), ...args);
 }
 
 /**

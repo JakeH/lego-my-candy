@@ -1,13 +1,11 @@
 import { AllEventTypes } from 'chat-bot/chat-bot.models';
-import { CommandDirective } from 'commands/commands.model';
 import { bgRed } from 'kleur';
-import { processScene } from './scenes/scenes';
 import { checkFirstArrival } from './arrivals/arrivals';
 import chatBot from './chat-bot/chat-bot';
 import { processCommand } from './commands/commands';
 import obs from './obs-websocket/obs-websocket';
-import { logMuted } from './utils/log';
-import { lh } from './utils/utils';
+import { logError, logMuted } from './utils/log';
+import { lh, tryAwait } from './utils/utils';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
@@ -23,7 +21,10 @@ async function start() {
     await chatBot.start();
 
     // wait to connect to OBS
-    await obs.start();
+    const [obsErr] = await tryAwait(() => obs.start());
+    if (obsErr){
+        logError(`Could not connect to OBS`, obsErr);
+    }
 
     // listen for chat events...
     chatBot.eventStream().subscribe(event => {
@@ -52,8 +53,11 @@ async function start() {
                 checkFirstArrival(event.username);
                 ev(event, `${lh(event.username)} says '${lh(event.message)}'`);
                 break;
+            case 'raided':
+                ev(event, `${lh(event.username)} with '${lh(event.viewers)} viewers'`);
+                break;
             default:
-                logMuted(event);
+                console.log(event);
                 break;
         }
     });
@@ -76,8 +80,6 @@ process.on('SIGTERM', stop);
 (async () => {
 
     await start();
-
-    // obs.getSourcesList().then(list => console.log(list));
 
     logMuted('Started application');
 
