@@ -1,4 +1,4 @@
-import { grey, white } from 'kleur';
+import { green, grey, white } from 'kleur';
 
 /**
  * Logs an error with highlighting
@@ -18,4 +18,8 @@ export function logError(message: string, ...args: any[]) {
  */
 export function logMuted(message: string, ...args: any[]) {
     console.log(grey(message), ...args);
+}
+
+export function logSuccess(message: string) {
+    console.log(`✅ ${green(message)}`);
 }

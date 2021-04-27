@@ -1,5 +1,6 @@
-import { AllEventTypes } from 'chat-bot/chat-bot.models';
+import { AllEventTypes } from './chat-bot/chat-bot.models';
 import { bgRed } from 'kleur';
+import { upgradeSettings } from './settings/settings';
 import { checkFirstArrival } from './arrivals/arrivals';
 import chatBot from './chat-bot/chat-bot';
 import { processBitCommand, processCommand, processPointCommand } from './commands/commands';
@@ -8,6 +9,8 @@ import obs from './obs-websocket/obs-websocket';
 import pubsub from './pubsub/pubsub';
 import { logError, logMuted } from './utils/log';
 import { lh, tryAwait } from './utils/utils';
+import { EMPTY, of } from 'rxjs';
+import { filter, take, takeWhile } from 'rxjs/operators';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
@@ -111,7 +114,7 @@ async function start() {
  */
 async function stop() {
     await chatBot.stop();
-    await pubsub.getClient().disconnect();
+    await pubsub.stop();
     process.exit(0);
 }
 
@@ -122,8 +125,13 @@ process.on('SIGTERM', stop);
 // entry point
 (async () => {
 
-    await start();
+    if (upgradeSettings()) {
+        logError('Your settings were upgraded. Please ensure the file contents are correct and launch again');
+        process.exit(0);
+    }
 
-    logMuted('Started application');
+    logMuted('Starting application');
+
+    await start();
 
 })();

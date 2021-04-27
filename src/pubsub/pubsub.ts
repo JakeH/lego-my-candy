@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { randomBytes } from 'crypto';
 import { Observable, Subject } from 'rxjs';
 import { filter, map, take, takeWhile } from 'rxjs/operators';
-import { logError, logMuted } from '../utils/log';
+import { logError, logMuted, logSuccess } from '../utils/log';
 import * as WebSocket from 'ws';
 import { getCurrentSettings, saveSettings } from '../settings/settings';
 import { PromWrap, tryAwait, wait } from '../utils/utils';
@@ -46,12 +46,12 @@ const PONG_TIMEOUT = 30e3;
 class PubSubClient {
 
     public readonly events$: Observable<PubSubEvents>;
-   
+
     private isConnected = false;
     private lastPong = 0;
     private pingTimerRef: NodeJS.Timeout;
     private authToken: TwitchAuthToken;
-    
+
     private ws: WebSocket;
     private readonly messages$ = new Subject<PubSubResponse>();
 
@@ -84,7 +84,6 @@ class PubSubClient {
     }
 
     public async connect() {
-
         await this.validateToken(true);
 
         this.ws = new WebSocket('wss://pubsub-edge.twitch.tv');
@@ -94,6 +93,11 @@ class PubSubClient {
             const message: PubSubResponse = JSON.parse(data);
 
             if (message.type === 'PONG') {
+                if (!this.isConnected) {
+                    // first pong
+                    logSuccess(`Connected to PubSub`);
+                }
+
                 this.isConnected = true;
                 this.lastPong = Date.now();
                 return;
@@ -130,7 +134,7 @@ class PubSubClient {
         this.isConnected = false;
         clearInterval(this.pingTimerRef);
         this.ws?.close();
-        await this.stopListening();
+        await this.stopListening().catch(() => { /* no-op */ });
     }
 
     private reconnect() {
@@ -158,6 +162,10 @@ class PubSubClient {
 
         return axios.get<TokenRefreshResponse>(`https://twitchtokengenerator.com/api/refresh/${pubsub.refreshToken}`)
             .then(response => {
+                if (!response.data.success) {
+                    logError(`Failed to refresh token`, response.data);
+                    return;
+                }
                 pubsub.authToken = response.data.token;
                 saveSettings(true);
                 logMuted('Refreshed PubSub auth token');
@@ -248,6 +256,10 @@ class PubSubClient {
     }
 
     public async startListening() {
+        if (!this.authToken) {
+            logError(`No AuthToken, cannot connect to PubSub`);
+            return;
+        }
         const { user_id } = this.authToken;
         await this.sendMessage('LISTEN', {
             topics: eventMapping.map(o => `${o.prefix}.${user_id}`)
@@ -255,6 +267,9 @@ class PubSubClient {
     }
 
     public async stopListening() {
+        if (!this.authToken) {
+            return;
+        }
         const { user_id } = this.authToken;
         await this.sendMessage('UNLISTEN', {
             topics: eventMapping.map(o => `${o.prefix}.${user_id}`)
@@ -271,6 +286,14 @@ export default {
             client = new PubSubClient();
         }
         return client;
+    },
+
+    stop: async () => {
+        if (!client) {
+            return;
+        }
+
+        return client.disconnect().catch(() => { /* */ });
     }
 
 };
