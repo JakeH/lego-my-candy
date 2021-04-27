@@ -40,9 +40,10 @@ async function startPubSub() {
 
                 message = `${lh(event.data.redemption.user.display_name)} redeemed ${lh(event.data.redemption.reward.title)}`;
                 break;
-        }
 
-        console.log(event);
+            case 'sub':
+                return;
+        }
 
         logMuted(`${eventName} ${message}`);
     });

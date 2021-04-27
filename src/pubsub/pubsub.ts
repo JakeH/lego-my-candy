@@ -60,9 +60,6 @@ class PubSubClient {
             filter(message => message.type === 'MESSAGE'),
             map((message: PubSubEventMessage) => {
 
-                // TODO: have no idea what the points message will actually look like
-                console.log(message);
-
                 const { data } = message;
                 const mapping = eventMapping.find(o => data.topic.startsWith(o.prefix));
                 if (!mapping) {
@@ -73,6 +70,10 @@ class PubSubClient {
 
                 return {
                     ...parsedMessage,
+
+                    // ensure that this type goes last,
+                    // as the points message also includes
+                    // a root-level `type` property for some stupid reason
                     type: mapping.type,
                 } as PubSubEvents;
 
@@ -92,13 +93,12 @@ class PubSubClient {
 
             const message: PubSubResponse = JSON.parse(data);
 
-            console.log(message);
-
             if (message.type === 'PONG') {
                 this.isConnected = true;
                 this.lastPong = Date.now();
                 return;
             } else if (message.type === 'RECONNECT') {
+                logMuted('We are being requested to reconnect');
                 this.reconnect();
                 return;
             }
@@ -197,7 +197,6 @@ class PubSubClient {
         }
 
         if (res) {
-            console.log(res.data);
             this.authToken = {
                 ...res.data,
                 token: pubsub.authToken,
