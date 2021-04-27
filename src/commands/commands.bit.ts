@@ -6,6 +6,10 @@ import { CommandContext } from './commands.model';
 export function processBitCommand(amount: number, context: CommandContext) {
     const { bitTriggers } = getCurrentSettings();
 
+    if (!bitTriggers || bitTriggers.length === 0) {
+        return;
+    }
+
     // find the directive with the highest bit amount barrier that 
     // this event matches
     const [directive] = bitTriggers.filter(o => amount >= o.minAmount)
@@ -20,6 +24,7 @@ export function processBitCommand(amount: number, context: CommandContext) {
     // send it to the scene processor
     processScene(directive.directives, {
         ...context,
+        amount,
     }).catch(err => {
         logError(`Failed to run bit command with min amount of ${directive.minAmount}`, err);
     }).finally(() => {

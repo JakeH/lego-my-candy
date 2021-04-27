@@ -6,6 +6,10 @@ import { CommandContext } from './commands.model';
 export function processPointCommand(title: string, context: CommandContext) {
     const { pointTriggers } = getCurrentSettings();
 
+    if (!pointTriggers || pointTriggers.length === 0) {
+        return;
+    }
+
     // find the directive that matches the channel point title
     const directive = pointTriggers.find(o => o.rewardTitle.toLowerCase() === title.toLowerCase());
 
@@ -18,6 +22,7 @@ export function processPointCommand(title: string, context: CommandContext) {
     // send it to the scene processor
     processScene(directive.directives, {
         ...context,
+        rewardTitle: title,
     }).catch(err => {
         logError(`Failed to run point command '${directive.rewardTitle}'`, err);
     }).finally(() => {

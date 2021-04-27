@@ -33,6 +33,10 @@ function getRecent(command: string): RecentCommand {
 export function processCommand(command: string, context: CommandContext) {
     const { commandTriggers } = getCurrentSettings();
 
+    if (!commandTriggers || commandTriggers.length === 0) {
+        return;
+    }
+
     const directive = commandTriggers.find(o => o.command.toLowerCase() === command.toLowerCase());
 
     // if we have no matching directive for this command, 
