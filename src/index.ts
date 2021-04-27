@@ -29,7 +29,7 @@ async function startPubSub() {
                 break;
 
             case 'points':
-                message = `todo`;
+                message = `${lh(event.data.redemption.user.display_name)} redeemed ${lh(event.data.redemption.reward.title)}`;
                 break;
         }
 

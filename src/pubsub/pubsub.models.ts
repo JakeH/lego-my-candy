@@ -90,6 +90,22 @@ export interface PubSubBitEvent extends PubSubEventBase {
 
 export interface PubSubPointEvent extends PubSubEventBase {
     readonly type: 'points';
+
+    readonly data: {
+        redemption: {
+            user: {
+                id: string;
+                login: string;
+                display_name: string;
+            };
+            reward: {
+                title: string;
+                prompt: string;
+                cost: number;
+            };
+            user_input?: string;
+        };
+    };
 }
 
 export interface PubSubSubEvent extends PubSubEventBase {

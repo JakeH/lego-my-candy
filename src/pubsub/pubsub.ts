@@ -72,8 +72,8 @@ class PubSubClient {
                 const parsedMessage = JSON.parse(data.message);
 
                 return {
-                    type: mapping.type,
                     ...parsedMessage,
+                    type: mapping.type,
                 } as PubSubEvents;
 
             }),
