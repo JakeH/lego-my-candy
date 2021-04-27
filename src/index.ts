@@ -8,6 +8,7 @@ import { processCommand } from './commands/commands';
 import obs from './obs-websocket/obs-websocket';
 import { logMuted } from './utils/log';
 import { lh } from './utils/utils';
+import pubsub from './pubsub/pubsub';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
@@ -75,7 +76,12 @@ process.on('SIGTERM', stop);
 // entry point
 (async () => {
 
-    await start();
+    // await start();
+
+    await pubsub.start();
+    // await pubsub.sendMessage('LISTEN', {
+    //     topics: ['channel-bits-events-v2.401095808']
+    // });
 
     // obs.getSourcesList().then(list => console.log(list));
 

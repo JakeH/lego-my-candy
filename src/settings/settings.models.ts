@@ -29,13 +29,31 @@ export interface AppSettings {
          * See the README.md for more information
          */
         clientId: string;
+    };
+
+    /**
+     * Authentication details for the Twitch PubSub integration
+     */
+    pubsub: {
 
         /**
-         * Twitch app client secret
+         * Twitch app client id.
          * 
          * See the README.md for more information
          */
-        clientSecret: string;
+        clientId: string;
+
+        /**
+         * OAuth token for pubsub. 
+         * 
+         */
+        authToken: string;
+
+        /**
+         * OAuth refresh token for pubsub.
+         */
+        refreshToken: string;
+
     };
 
     streamElements?: {
