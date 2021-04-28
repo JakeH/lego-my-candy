@@ -11,6 +11,9 @@ const allRestrictions: Array<keyof UserRestrictions> = ['broadcaster', 'moderato
  * @returns 
  */
 export function userHasPermission(user: UserInfo, restrictions: UserRestrictions): boolean {
+    if (!restrictions) {
+        return true;
+    }
     const scope: Array<keyof UserRestrictions> = [];
 
     if (user.broadcaster) {

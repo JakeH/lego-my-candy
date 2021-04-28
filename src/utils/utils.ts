@@ -49,7 +49,8 @@ const TOKEN_MATCHTER_REGEX = /{{\s?([^{}\s]*)\s?}}/g;
  */
 export function tokenStringParser<T extends object>(input: string, values: T): string {
     return input.replace(TOKEN_MATCHTER_REGEX, (sub, token) => {
-        return values[token] || sub;
+        const v = values[token];
+        return (v !== null && v !== undefined) ? v : sub;
     });
 }
 

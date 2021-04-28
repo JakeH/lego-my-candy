@@ -121,18 +121,30 @@ export function upgradeSettings(): boolean {
         updated = true;
     }
 
+    if (!settings.counter) {
+        settings.counter = {
+            disabled: true,
+            gameId: '',
+            sourceDirectory: ''
+        };
+
+        updated = true;
+    }
+
     if (updated) {
         // sorting just because
         const {
             channel, identity, pubsub, streamElements,
             obsWebsocket, arrivalNotifications,
             commandTriggers, bitTriggers, pointTriggers,
+            counter,
         } = settings;
 
         appSettings = {
             channel, identity, pubsub, streamElements,
             obsWebsocket, arrivalNotifications,
             commandTriggers, bitTriggers, pointTriggers,
+            counter,
         };
 
         saveSettings(true);

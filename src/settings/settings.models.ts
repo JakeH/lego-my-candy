@@ -1,5 +1,6 @@
 import { UserJoinedSourceActivation } from 'arrivals/arrivals.models';
 import { BitCommandDirective, CommandDirective, PointCommandDirective } from 'commands/commands.model';
+import { CounterSettings } from 'counter/counter.models';
 import { OBSWebsocketCredentials } from 'obs-websocket/obs-websocket.models';
 
 export interface AppSettings {
@@ -89,5 +90,10 @@ export interface AppSettings {
      * A list of scenes to trigger based on channel point redemptions
      */
     pointTriggers?: PointCommandDirective[];
+
+    /**
+     * Counter settings
+     */
+    counter?: CounterSettings;
 
 }

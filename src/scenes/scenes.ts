@@ -1,6 +1,7 @@
 import audio from '../audio/audio';
 import chatbot from '../chat-bot/chat-bot';
 import obs from '../obs-websocket/obs-websocket';
+import counter from '../counter/counter';
 import { addToQueue, randomFrom, tokenStringParser, wait } from '../utils/utils';
 import { AllSceneTypes, SceneContext } from './scenes.models';
 
@@ -29,6 +30,10 @@ function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Pr
             case 'obs':
                 const { durationInSeconds, sceneName, sourceName } = s;
                 return delay.then(() => obs.pulseSource(sourceName, sceneName, durationInSeconds));
+
+            case 'counter':
+                const { change } = s;
+                return delay.then(() => counter.processCounter(change));
 
         }
     });

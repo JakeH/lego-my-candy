@@ -1,5 +1,5 @@
 
-export type SceneTypes = 'audio' | 'obs' | 'chat';
+export type SceneTypes = 'audio' | 'obs' | 'chat' | 'counter';
 
 export interface SceneContext {
     /**
@@ -31,7 +31,7 @@ export interface SceneDirectiveAudio extends SceneDirectiveBase {
      * If multiple files are provided, one will be played at random
      */
     filename: string | string[];
-    
+
 }
 
 export interface SceneDirectiveOBS extends SceneDirectiveBase {
@@ -70,4 +70,14 @@ export interface SceneDirectiveChat extends SceneDirectiveBase {
     message: string;
 }
 
-export type AllSceneTypes = SceneDirectiveChat | SceneDirectiveOBS | SceneDirectiveAudio;
+export interface SceneDirectiveCount extends SceneDirectiveBase {
+    readonly type: 'counter';
+
+    /**
+     * The amount to change the counter. `1` to increment by 1, `-100` to decrement by 100;
+     */
+    change: number;
+
+}
+
+export type AllSceneTypes = SceneDirectiveChat | SceneDirectiveOBS | SceneDirectiveAudio | SceneDirectiveCount;

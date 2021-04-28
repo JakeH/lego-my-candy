@@ -7,6 +7,7 @@ import { CommandContext } from './commands/commands.model';
 import keys from './keys/keys';
 import obs from './obs-websocket/obs-websocket';
 import pubsub from './pubsub/pubsub';
+import counter from './counter/counter';
 import { upgradeSettings } from './settings/settings';
 import { logError, logMuted, logSuccess } from './utils/log';
 import { lh, tryAwait } from './utils/utils';
@@ -60,6 +61,9 @@ async function start() {
 
     // listen for keypresses
     keys.start();
+
+    // start counter
+    await counter.start();
 
     // wait to connect to OBS
     const [obsErr] = await tryAwait(() => obs.start());
@@ -117,6 +121,7 @@ async function start() {
 async function stop() {
     await chatBot.stop();
     await pubsub.stop();
+    await counter.stop();
     process.exit(0);
 }
 
