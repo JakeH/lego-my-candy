@@ -1,7 +1,7 @@
 import audio from '../audio/audio';
 import chatbot from '../chat-bot/chat-bot';
 import obs from '../obs-websocket/obs-websocket';
-import { addToQueue, tokenStringParser, wait } from '../utils/utils';
+import { addToQueue, randomFrom, tokenStringParser, wait } from '../utils/utils';
 import { AllSceneTypes, SceneContext } from './scenes.models';
 
 function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Promise<void> {
@@ -12,7 +12,15 @@ function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Pr
 
         switch (s.type) {
             case 'audio':
-                return delay.then(() => audio.play(s.filename));
+                let singleFilename: string;
+                if (Array.isArray(s.filename)) {
+                    // if multiple are provided, choose one at random
+                    singleFilename = randomFrom(s.filename);
+                } else {
+                    singleFilename = s.filename;
+                }
+
+                return delay.then(() => audio.play(singleFilename));
 
             case 'chat':
                 const message = tokenStringParser(s.message, context);

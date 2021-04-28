@@ -94,3 +94,13 @@ export class PromWrap<T = void> {
         return this._promise;
     }
 }
+
+/**
+ * Returns a random element from an array
+ * 
+ * @param arr 
+ * @returns 
+ */
+export function randomFrom<T>(arr: T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)];
+}

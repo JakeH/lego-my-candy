@@ -26,37 +26,26 @@ In order to play audio, you will need to download a binary file for this applica
 
 ## App Settings
 
-If the file `app.settings.json` does not already exist in this directory, create the file, then copy and paste the following into it. 
+When running the application either for the first time ever, or first time after an update, the settings file will be evaluated. If the file is lacking in settings, it will be updated with placeholder information, a warning message will be displayed, and the app will exit. If this happens, please update the settings according to the following sections.
 
 This file contains confidential information. It will not leave your PC, and you should not show its contents to anyone else.
 
-```json
-{
-    "channel": "",
-    "identity": {
-        "username": "",
-        "password": "",
-        "clientId": ""
-    },
-    "obsWebsocket":{
-        "address": "",
-        "password": "",
-    },
-    "arrivalNotifications": [
-        {
-            "username": "",
-            "sourceName": "",
-            "durationInSeconds": 0
-        }
-    ],
-    "commandTriggers": []
-}
-```
-The `channel` property is the channel you want to connect to. It does not have to be your own.
+| Property             | Description                                                                           |
+|----------------------|---------------------------------------------------------------------------------------|
+| channel              | The Twitch channel name to connect to                                                 |
+| identity             | Your identity to use when connecting to the Twitch channel for **chat** functionality |
+| pubsub               | Credentials to use for Twitch PubSub notifications of Bits, Points, and Subs.         |
+| streamElements       | StreamElements API token. Currently not used.                                         |
+| obsWebsocket         | Websocket connection info for OBS functionality                                       |
+| arrivalNotifications | Notifications when certain users arrive in chat                                       |
+| commandTriggers      | Scenes to trigger when certain commands are issued in chat                            |
+| bitTriggers          | Scenes to trigger when bit cheers happen                                              |
+| pointTriggers        | Scenes to trigger when point redemptions happen                                       |
 
-In `identitiy`, `username` needs to be your own. To get the `clientId` and `password` information, follow these steps:
 
-#### Client ID
+#### Identity
+
+##### Client ID
 
 Go to https://dev.twitch.tv/console/apps
 
@@ -68,7 +57,7 @@ Go to https://dev.twitch.tv/console/apps
    
 You should see a **Client ID** token. 
 
-#### OAuth token for password
+##### OAuth token for password
 
 Go to https://twitchapps.com/tmi/
 
@@ -76,6 +65,20 @@ Go to https://twitchapps.com/tmi/
 2. Authorize TMI with Twitch, if prompted
 
 You should see a text field starting with "oauth:". Copy the entire text, this is your password.
+
+### PubSub
+
+1. Go to https://twitchtokengenerator.com/
+2. Under Helix, toggle Yes for these 
+   1. bits:read
+   2. chat:read
+   3. channel:read:redemptions
+   4. channel:read:subscriptions	
+3. Click the green **Generate Token!** button. 
+4. Authenticate with Twitch. 
+5. Copy the Access Token, Refresh Token, and Client Id. 
+6. Paste those values into the appropriate config fields
+
 
 ### OBS Websocket
 
@@ -279,6 +282,15 @@ Will play audio locally.
 {
     "type": "audio",
     "filename": "c:/folder/file.ogg"
+}
+```
+
+If you provide an array of files in the `filename` property, one of the files will be played at random
+
+```json
+{
+    "type": "audio",
+    "filename": [ "c:/folder/file.ogg", "c:/folder/file2.ogg" ]
 }
 ```
 

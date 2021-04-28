@@ -67,6 +67,28 @@ export function upgradeSettings(): boolean {
     const settings = getCurrentSettings();
     let updated = false;
 
+    if (!settings.channel) {
+        settings.channel = '';
+        updated = true;
+    }
+
+    if (!settings.identity) {
+        settings.identity = {
+            clientId: '',
+            password: '',
+            username: '',
+        };
+        updated = true;
+    }
+
+    if (!settings.obsWebsocket) {
+        settings.obsWebsocket = {
+            address: '',
+            password: '',
+        };
+        updated = true;
+    }
+
     if (!settings.pubsub) {
         settings.pubsub = {
             authToken: '',

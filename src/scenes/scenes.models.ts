@@ -26,9 +26,12 @@ export interface SceneDirectiveAudio extends SceneDirectiveBase {
     readonly type: 'audio';
 
     /**
-     * The name of the audio file to play
+     * The name of the audio file to play.
+     * 
+     * If multiple files are provided, one will be played at random
      */
-    filename: string;
+    filename: string | string[];
+    
 }
 
 export interface SceneDirectiveOBS extends SceneDirectiveBase {
