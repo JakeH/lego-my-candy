@@ -2,7 +2,7 @@
 
 ## Getting started
 
-1. Ensure you have Node.js version 12 or later installed
+1. Ensure you have Node.js version 14 or later installed
    1. https://nodejs.org/en/download/
 2. Optionally, install VSCode for easier editing
    1. https://code.visualstudio.com/download
@@ -70,10 +70,10 @@ You should see a text field starting with "oauth:". Copy the entire text, this i
 
 1. Go to https://twitchtokengenerator.com/
 2. Under Helix, toggle Yes for these 
-   1. bits:read
-   2. chat:read
-   3. channel:read:redemptions
-   4. channel:read:subscriptions	
+   1. `bits:read`
+   2. `chat:read`
+   3. `channel:read:redemptions`
+   4. `channel:read:subscriptions`	
 3. Click the green **Generate Token!** button. 
 4. Authenticate with Twitch. 
 5. Copy the Access Token, Refresh Token, and Client Id. 
@@ -126,6 +126,10 @@ See the "What is a Scene" section for more information about the individual task
 
 With a command trigger, you will need to supply the `command` which triggers it. This command will be issues in chat like `!command Hello!` though when writing your rule, exclude the leading exclamation point as well as any text after the command.
 
+The `command` text can be empty if you wish to drive this command by local keyboard presses only. If this case, add the `key` property (See **Key Shortcuts**) and leave the `command` property as an empty string (`"command": ""`)
+
+The `command` text can only be alphanumeric characters with no spacing. `ABCabc123` is acceptable for a command, though keep in mind that we evaluate the command as lowercase for matching. So `ABCabc123` is the same as `abcabc123` and if you have multiple entries with the same command text, only the first will be ran.
+
 The following are optional properties
 
 | Property             | Description                                                                                                        |
@@ -134,6 +138,7 @@ The following are optional properties
 | restrictions         | Restricts who can issue the command. See **User Permissions** for info                                             |
 | delayBetweenCommands | A buffer between executions of the same command, in seconds.                                                       |
 | ignoreDuplicates     | If true, it will ignore commands issued while there is either a command actively playing, or queued to be executed |
+| key                  | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
 
 
 ```json
@@ -199,7 +204,7 @@ The following are optional properties
 | Property             | Description                                                                                                        |
 |----------------------|--------------------------------------------------------------------------------------------------------------------|
 | disabled             | If true, the command will be disabled                                                                              |
-
+| key                  | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
 
 ```json
 "bitTriggers": [
@@ -228,7 +233,7 @@ The following are optional properties
 | Property             | Description                                                                                                        |
 |----------------------|--------------------------------------------------------------------------------------------------------------------|
 | disabled             | If true, the command will be disabled                                                                              |
-
+| key                  | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
 
 ```json
 "pointTriggers": [
@@ -243,6 +248,25 @@ The following are optional properties
     }
 ]
 ```
+
+### Key Shortcuts
+
+For Chat, Bit, and Point commands, you can invoke them with a single keyboard key. When these commands are ran via keypress, they are added to the queue without regard for delay timing, user restrictions, or any other specific restrictions. 
+
+The message replacement strings for `username` will always be the name of the `channel` from the settings file.
+
+For a list of key names to use in your settings file, please look at `./keys/mappings.ts`. You need to use the right-side text, as-is, in your configuration.
+
+If you have multiple active commands with the same key, they will all be queued. Order of queueing is not guaranteed.
+
+```json
+{
+    "key": "Page Up",
+    "directive": []
+}
+```
+
+If you have trouble with finding a key in the `mappings.ts` file, you can run `npm run keys:debug` which will start a listener for keypresses. Press the key you wish to use. The numeric code and the mapping text (if available) will be shown.
 
 ### User Permissions
 

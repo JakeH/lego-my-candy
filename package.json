@@ -6,6 +6,7 @@
   "scripts": {
     "start": "ts-node ./src/index.ts",
     "audio": "ts-node ./src/audio/audio.ts",
+    "keys:debug": "ts-node ./src/keys/keys-test.ts",
     "lint": "tslint --project tslint.json -t stylish",
     "build": "tsc"
   },
@@ -30,7 +31,7 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
-    "iohook": "^0.9.1",
+    "iohook": "0.6.6",
     "jwt-decode": "^3.1.2",
     "kleur": "^4.1.4",
     "obs-websocket-js": "^4.0.2",

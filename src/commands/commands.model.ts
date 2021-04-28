@@ -6,7 +6,11 @@ export type CommandContext = UserInfo & {
     sent: Date;
 };
 
-export interface CommandDirective {
+export interface KeyActivatedDirective {
+    key?: string;
+}
+
+export interface CommandDirective extends KeyActivatedDirective {
 
     /**
      * The command text (minus the leading !) which triggers this directive
@@ -41,7 +45,7 @@ export interface CommandDirective {
 
 }
 
-export interface BitCommandDirective {
+export interface BitCommandDirective extends KeyActivatedDirective {
 
     /**
      * The minimum amount of bits needed to activate this command
@@ -59,7 +63,7 @@ export interface BitCommandDirective {
     disabled?: boolean;
 }
 
-export interface PointCommandDirective {
+export interface PointCommandDirective extends KeyActivatedDirective {
 
     /**
      * The reward title which, when redeemed, will activate this command
