@@ -129,25 +129,37 @@ function onMessageHandler(channel: string, context: ChatUserstate, message: stri
 
     const extracted = extractInfo(context);
 
+    // if this looks like a command message, we can evalute it
     if (message && message[0] === '!') {
         const command = message.substr(1).split(' ')[0];
-        const nextMessage = message.substr(command.length + 1).trim();
 
-        events$.next({
-            type: 'command',
-            command,
-            context,
-            message: nextMessage,
-            ...extracted,
-        });
-    } else {
-        events$.next({
-            type: 'message',
-            context,
-            message,
-            ...extracted,
-        });
+        // check for non-empty or valid commands
+        if (/^[0-9a-zA-Z]+$/.test(command.trim())) {
+
+            const nextMessage = message.substr(command.length + 1).trim();
+
+            events$.next({
+                type: 'command',
+                command,
+                context,
+                message: nextMessage,
+                ...extracted,
+            });
+
+            return;
+        } else {
+            // we will just treat this like a normal message
+            logMuted(`Ignoring invalid command '${message}'`);
+        }
     }
+
+    events$.next({
+        type: 'message',
+        context,
+        message,
+        ...extracted,
+    });
+
 }
 
 function onRedeemHandler(channel: string, username: string, rewardType: string, context: ChatUserstate) {

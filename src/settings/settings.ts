@@ -3,11 +3,14 @@ import { watch, readFileSync, existsSync } from 'fs';
 import { join as pathJoin } from 'path';
 import { logError, logMuted, logSuccess } from '../utils/log';
 import { writeFileSync } from 'fs';
+import { BehaviorSubject } from 'rxjs';
 
 const settingsFile = pathJoin(process.cwd(), './app.settings.json');
 
 let appSettings: AppSettings = null;
 let skipNextReload = false;
+
+export const settingsLoaded$ = new BehaviorSubject<AppSettings>(null);
 
 function ensureExists() {
     if (!existsSync(settingsFile)) {
@@ -24,6 +27,8 @@ function loadSettings() {
     ensureExists();
     appSettings = JSON.parse(readFileSync(settingsFile).toString());
     delete appSettings['$schema'];
+
+    settingsLoaded$.next(appSettings);
 
     logSuccess('Loaded settings file');
 }
