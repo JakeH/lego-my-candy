@@ -1,3 +1,4 @@
+import { addToQueue } from '../utils/utils';
 import chatBot from '../chat-bot/chat-bot';
 import obs from '../obs-websocket/obs-websocket';
 import { getCurrentSettings } from '../settings/settings';
@@ -40,10 +41,15 @@ export function checkFirstArrival(username: string) {
     // add the user to the known arrivals
     knownArrivalsThisStream.push(lowername);
 
-    // send a message to the chat about their arrival
-    chatBot.say(`${username} is here!`);
+    return addToQueue(() => {
 
-    // pulse the scene in OBS
-    const { sourceName, sceneName, durationInSeconds } = userToReact;
-    obs.pulseSource(sourceName, sceneName, durationInSeconds);
+        // send a message to the chat about their arrival
+        chatBot.say(`${username} is here!`);
+
+        // pulse the scene in OBS
+        const { sourceName, sceneName, durationInSeconds } = userToReact;
+        return obs.pulseSource(sourceName, sceneName, durationInSeconds);
+
+    });
+
 }

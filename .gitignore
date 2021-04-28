@@ -1,5 +1,9 @@
 # do not check in the settings file
 app.settings.json
+app.settings.json.bak
+
+#binaries
+.bin
 
 # Logs
 logs

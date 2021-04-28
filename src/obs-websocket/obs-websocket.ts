@@ -1,22 +1,23 @@
 import * as OBSWebsocket from 'obs-websocket-js';
+import { PromWrap, tryAwait, wait } from '../utils/utils';
 import { getCurrentSettings } from '../settings/settings';
+import { logError, logMuted, logSuccess } from '../utils/log';
 
 const obs = new OBSWebsocket();
 
 async function connectToOBS() {
     const { obsWebsocket } = getCurrentSettings();
-    obs.connect(obsWebsocket);
-    let resolve: (x?: any) => void;
-    const prom = new Promise((res) => {
-        resolve = res;
-    });
+
+    const prom = new PromWrap();
+
+    obs.connect(obsWebsocket).catch(err => prom.reject(err));
 
     obs.on('AuthenticationSuccess', () => {
-        console.log('Connected to OBS');
-        resolve();
+        logSuccess('Connected to OBS');
+        prom.resolve();
     });
 
-    return prom;
+    return prom.toPromise();
 }
 
 export default {
@@ -33,25 +34,38 @@ export default {
      * @param source The name of the source to target
      * @param durationInSeconds The duration for this source to be on
      */
-    pulseSource: (source: string, sceneName: string, durationInSeconds: number) => {
+    pulseSource: async (source: string, sceneName: string, durationInSeconds: number) => {
 
-        console.log(`Turning '${source}' on`);
+        logMuted(`Turning '${source}' on`);
 
-        obs.send('SetSceneItemRender', {
-            source,
-            render: true,
-            'scene-name': sceneName,
-        }).catch(err => console.error(err));
+        const [onError] = await tryAwait(() =>
+            obs.send('SetSceneItemRender', {
+                source,
+                'scene-name': sceneName,
+                render: true,
+            }));
 
-        setTimeout(() => {
-            console.log(`Turning '${source}' off`);
+        if (onError) {
+            logError(`Failed to turn on scene`, { source, sceneName }, onError);
+            return;
+        }
+
+        await wait(durationInSeconds * 1000);
+
+        logMuted(`Turning '${source}' off`);
+
+        const [offError] = await tryAwait(() =>
 
             obs.send('SetSceneItemRender', {
                 source,
                 'scene-name': sceneName,
                 render: false,
-            }).catch(err => console.error(err));
-        }, durationInSeconds * 1000);
+            }));
+
+        if (offError) {
+            logError(`Failed to turn off scene`, { source, sceneName }, offError);
+            return;
+        }
 
     }
 
