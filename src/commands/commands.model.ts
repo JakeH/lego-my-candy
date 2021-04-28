@@ -39,6 +39,15 @@ export interface CommandDirective extends KeyActivatedDirective {
     delayBetweenCommands?: number;
 
     /**
+     * A command cooldown. Will be immediately rejected if another instance
+     * of this command is in the queue, or if it was executed before
+     * this amount of seconds have elapsed since the last run.
+     * 
+     * Is an explicit `ignoreDuplicates` regardless of its setting.
+     */
+    cooldown?: number;
+
+    /**
      * If true, the command will be disabled
      */
     disabled?: boolean;

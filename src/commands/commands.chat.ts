@@ -22,7 +22,7 @@ function getRecent(command: string): RecentCommand {
     const next = {
         command: command.toLowerCase(),
         active: 0,
-        lastRun: Number.MAX_SAFE_INTEGER,
+        lastRun: undefined,
     };
 
     recentCommands.push(next);
@@ -51,6 +51,17 @@ export function processCommand(command: string, context: CommandContext) {
     }
     let recent = getRecent(command);
 
+    // if we have a cooldown...
+    if (directive.cooldown) {
+        // check the time since the last run
+        const minElig = (recent.lastRun || 0) + (directive.cooldown * 1e3);
+
+        if (recent.active > 0 || Date.now() < minElig) {
+            logError(`Command '${command}' is on cooldown`);
+            return;
+        }
+    }
+
     if (directive.ignoreDuplicates && recent.active > 0) {
         logError(`Duplicate command '${command}' ignored`);
         return;
@@ -65,8 +76,8 @@ export function processCommand(command: string, context: CommandContext) {
         recent = getRecent(command);
 
         if (directive.delayBetweenCommands) {
-            const sinceLastRun = Date.now() - recent.lastRun;
-            const waitFor = Math.max(0, sinceLastRun + directive.delayBetweenCommands);
+            const sinceLastRun = Date.now() - (recent.lastRun || Number.MAX_SAFE_INTEGER);
+            const waitFor = Math.max(0, sinceLastRun + (directive.delayBetweenCommands * 1e3));
             logMuted(`Waiting ${waitFor} to execute '${command}'`);
             await wait(waitFor);
         }
