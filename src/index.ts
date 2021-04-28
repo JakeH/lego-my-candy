@@ -1,16 +1,15 @@
-import { AllEventTypes } from './chat-bot/chat-bot.models';
 import { bgRed } from 'kleur';
-import { upgradeSettings } from './settings/settings';
 import { checkFirstArrival } from './arrivals/arrivals';
 import chatBot from './chat-bot/chat-bot';
+import { AllEventTypes } from './chat-bot/chat-bot.models';
 import { processBitCommand, processCommand, processPointCommand } from './commands/commands';
 import { CommandContext } from './commands/commands.model';
+import keys from './keys/keys';
 import obs from './obs-websocket/obs-websocket';
 import pubsub from './pubsub/pubsub';
-import { logError, logMuted } from './utils/log';
+import { upgradeSettings } from './settings/settings';
+import { logError, logMuted, logSuccess } from './utils/log';
 import { lh, tryAwait } from './utils/utils';
-import { EMPTY, of } from 'rxjs';
-import { filter, take, takeWhile } from 'rxjs/operators';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
@@ -58,6 +57,9 @@ async function startPubSub() {
 async function start() {
     // connect the chat bot
     await chatBot.start();
+
+    // listen for keypresses
+    keys.start();
 
     // wait to connect to OBS
     const [obsErr] = await tryAwait(() => obs.start());
@@ -130,7 +132,7 @@ process.on('SIGTERM', stop);
         process.exit(0);
     }
 
-    logMuted('Starting application');
+    logSuccess('Starting application');
 
     await start();
 
