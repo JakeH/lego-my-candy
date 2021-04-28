@@ -41,6 +41,7 @@ This file contains confidential information. It will not leave your PC, and you 
 | commandTriggers      | Scenes to trigger when certain commands are issued in chat                            |
 | bitTriggers          | Scenes to trigger when bit cheers happen                                              |
 | pointTriggers        | Scenes to trigger when point redemptions happen                                       |
+| counter              | Configuration for a counter. See **Using a Counter** for more info                    |
 
 
 #### Identity
@@ -298,7 +299,7 @@ The following task types are available.
 
 All tasks in a scene will execute at the same time. You can specify the optional `delayInSeconds` property in any task to delay its execution.
 
-### Audio
+#### Audio
 
 Will play audio locally. 
 
@@ -318,7 +319,7 @@ If you provide an array of files in the `filename` property, one of the files wi
 }
 ```
 
-### OBS
+#### OBS
 
 Will toggle the visibility of a scene in OBS
 
@@ -331,7 +332,7 @@ Will toggle the visibility of a scene in OBS
 }
 ```
 
-### Chat
+#### Chat
 
 Will send a message to chat. The message text can contain replacements for certain variables. 
 
@@ -347,6 +348,41 @@ The following variables are currently available
     "message": "Hello, {{username}}. I love you."
 }
 ```
+
+#### Counter
+
+Changes the current counter value by the number specified. 
+
+```json
+{
+    "type": "counter",
+    "change": 1
+}
+```
+
+To decrement, use a negative number.
+
+```json
+{
+    "type": "counter",
+    "change": -10
+}
+```
+
+### Using a Counter
+
+To use a counter, first add some basic information to the `app.settings.json` file's `counter` setting. 
+
+| Property        | Description                                    |
+| ------------ | ---------------------------------------------- |
+| sourceDirectory | The directory to store the "database" or counts, and the overlay text file for OBS |
+| gameId | The name of the game being played |
+| text | (Optional) Text to write to the OBS overlay file. Can use the token `{{count}}` to replace with the count |
+| disabled | (Optional) If true, will disable this section |
+
+This counter will store a JSON file and a text file in the `sourceDirectory` folder. When starting the app, changing the `gameId` or the `disabled` properties, the contents of the JSON file will be read to find a matching entry for `gameId`. Case matters, so please reference that file if you've forgotten the game id.
+
+Reference the **Counter** scene above for how to add the incrememnt / decrement to a command.
 
 ### Stream Elements
 

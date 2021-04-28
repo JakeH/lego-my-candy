@@ -80,4 +80,4 @@ export interface SceneDirectiveCount extends SceneDirectiveBase {
 
 }
 
-export type AllSceneTypes = SceneDirectiveChat | SceneDirectiveOBS | SceneDirectiveAudio;
+export type AllSceneTypes = SceneDirectiveChat | SceneDirectiveOBS | SceneDirectiveAudio | SceneDirectiveCount;
