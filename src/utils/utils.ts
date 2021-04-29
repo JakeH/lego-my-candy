@@ -74,14 +74,23 @@ export class PromWrap<T = void> {
 
     private _promise: Promise<T>;
 
-    constructor() {
+    private readonly rejectTimeout: NodeJS.Timeout;
+
+    constructor(autoRejectAfter?: number) {
         this._promise = new Promise<T>((res, rej) => {
             this._resolve = res;
             this._reject = rej;
         });
+
+        if (autoRejectAfter) {
+            this.rejectTimeout = setTimeout(() => { 
+                this.reject(new Error('timeout'));
+            }, autoRejectAfter);
+        }
     }
 
     public resolve(value: T) {
+        clearTimeout(this.rejectTimeout);
         this.hasBeenResolved = true;
         this._resolve(value);
     }
