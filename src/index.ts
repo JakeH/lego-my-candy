@@ -8,9 +8,10 @@ import keys from './keys/keys';
 import obs from './obs-websocket/obs-websocket';
 import pubsub from './pubsub/pubsub';
 import counter from './counter/counter';
-import { upgradeSettings } from './settings/settings';
+import { getCurrentSettings, upgradeSettings } from './settings/settings';
 import { logError, logMuted, logSuccess } from './utils/log';
 import { lh, tryAwait } from './utils/utils';
+import hub from './hub/hub';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
@@ -52,6 +53,17 @@ async function startPubSub() {
     });
 }
 
+async function startLegoHub() {
+    const { legoHub } = getCurrentSettings();
+
+    if (!legoHub || legoHub.disabled) {
+        logMuted('Lego Hub is disabled');
+        return;
+    }
+
+    await hub.start();
+}
+
 /**
  * Main function to be ran on start
  */
@@ -64,6 +76,9 @@ async function start() {
 
     // start counter
     await counter.start();
+
+    // start lego hub
+    await startLegoHub();
 
     // wait to connect to OBS
     const [obsErr] = await tryAwait(() => obs.start());
@@ -122,6 +137,7 @@ async function stop() {
     await chatBot.stop();
     await pubsub.stop();
     await counter.stop();
+    await hub.stop();
     process.exit(0);
 }
 

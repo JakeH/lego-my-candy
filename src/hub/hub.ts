@@ -16,7 +16,7 @@ import { PromWrap, wait } from '../utils/utils';
  */
 const INSTRUCTION_PREFIX = '3cf7f289-39b3-4faf-ba1a-cd7c4b8548d0|';
 
-const BINARY_LOCATION = './bin/hub/LegoMyCandy.exe';
+const BINARY_LOCATION = './.bin/hub/LegoMyCandy.exe';
 
 type ExpectedMessages = 'connected' | 'exit' | 'error.no-hub' | 'started';
 
@@ -26,11 +26,17 @@ const messageQueue = new SequentialTaskQueue();
 
 let ipc: ChildProcessWithoutNullStreams;
 
-function start() {
+let debugMessages = false;
+
+async function start(debug = false) {
+    debugMessages = debug;
+
     ipc = spawn(BINARY_LOCATION);
 
     ipc.stderr.on('data', receiveMessage);
     ipc.stdout.on('data', receiveMessage);
+
+    await messageQueue.cancel();
 
     messageQueue.push(() => {
         // sit at the front of the queue until we have a connection
@@ -59,6 +65,12 @@ function kill() {
 }
 
 async function stop() {
+    if (!ipc || ipc.killed) {
+        return;
+    }
+
+    await messageQueue.cancel();
+
     const prom = new PromWrap(15e3);
 
     messageStream$.pipe(
@@ -73,7 +85,7 @@ async function stop() {
         prom.resolve();
     });
 
-    sendIPC('exit');
+    sendIPC('exit', true);
 
     return prom.toPromise().catch(() => {
         // force kill
@@ -99,10 +111,19 @@ function sendMotor(power: number, duration: number) {
 
 }
 
-function sendIPC(message: string) {
-    messageQueue.push(() => {
+function sendIPC(message: string, bypassQueue = false) {
+
+    if (debugMessages) {
+        console.log(`SENT: ${message}`);
+    }
+    if (bypassQueue) {
         ipc.stdin.write(`${INSTRUCTION_PREFIX}${message}\n`);
-    });
+
+    } else {
+        messageQueue.push(() => {
+            ipc.stdin.write(`${INSTRUCTION_PREFIX}${message}\n`);
+        });
+    }
 }
 
 function receiveMessage(data: any) {
@@ -110,6 +131,10 @@ function receiveMessage(data: any) {
         return;
     }
     let message: string = data.toString().trim();
+
+    if (debugMessages) {
+        console.log(`RECV: ${message}`);
+    }
 
     if (message.startsWith(INSTRUCTION_PREFIX)) {
         message = message.substr(INSTRUCTION_PREFIX.length + 1).trim();
@@ -119,5 +144,7 @@ function receiveMessage(data: any) {
 
 export default {
     start,
+    stop,
     sendMotor,
+    sendIPC,
 };

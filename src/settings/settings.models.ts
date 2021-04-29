@@ -1,6 +1,7 @@
 import { UserJoinedSourceActivation } from 'arrivals/arrivals.models';
 import { BitCommandDirective, CommandDirective, PointCommandDirective } from 'commands/commands.model';
 import { CounterSettings } from 'counter/counter.models';
+import { LegoHubSettings } from 'hub/hub.models';
 import { OBSWebsocketCredentials } from 'obs-websocket/obs-websocket.models';
 
 export interface AppSettings {
@@ -95,5 +96,7 @@ export interface AppSettings {
      * Counter settings
      */
     counter?: CounterSettings;
+
+    legoHub?: LegoHubSettings;
 
 }
