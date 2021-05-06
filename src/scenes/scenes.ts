@@ -52,9 +52,8 @@ function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Pr
 
 }
 
-export async function processScene(scenes: AllSceneTypes[], context: SceneContext, before?: () => Promise<void>): Promise<void> {
+export async function processScene(scenes: AllSceneTypes[], context: SceneContext): Promise<void> {
     return addToQueue(() => {
-        return (before ? before() : Promise.resolve())
-            .then(() => privateProcessScene(scenes, context));
+        return privateProcessScene(scenes, context);
     });
 }

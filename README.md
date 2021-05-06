@@ -137,8 +137,6 @@ The following are optional properties
 |----------------------|--------------------------------------------------------------------------------------------------------------------|
 | disabled             | If true, the command will be disabled                                                                              |
 | restrictions         | Restricts who can issue the command. See **User Permissions** for info                                             |
-| delayBetweenCommands | A buffer between executions of the same command, in seconds.                                                       |
-| ignoreDuplicates     | If true, it will ignore commands issued while there is either a command actively playing, or queued to be executed |
 | cooldown             | A cooldown, in seconds. Subsequent similar commands issued during a cooldown period will be rejected.  |
 | key                  | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
 
@@ -150,8 +148,7 @@ The following are optional properties
         "restrictions": {
             "moderator": true,
         },
-        "delayBetweenCommands": 10,
-        "ignoreDuplicates": true,
+        "cooldown": 10,
         "directives": [
             {
                 "type": "chat",
