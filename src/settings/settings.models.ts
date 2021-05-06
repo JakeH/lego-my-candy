@@ -97,6 +97,9 @@ export interface AppSettings {
      */
     counter?: CounterSettings;
 
+    /**
+     * Lego hub settings
+     */
     legoHub?: LegoHubSettings;
 
 }

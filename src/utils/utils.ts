@@ -13,6 +13,12 @@ export async function addToQueue(task: Function) {
     return queue.push(task);
 }
 
+/**
+ * Returns a promise which resolves after a certain amount of time
+ * 
+ * @param duration The duration, in milliseconds, to wait before resolving
+ * @returns 
+ */
 export async function wait(duration: number): Promise<void> {
 
     let resolve: () => void;
@@ -24,6 +30,18 @@ export async function wait(duration: number): Promise<void> {
     return new Promise(res => {
         resolve = res;
     });
+}
+
+/**
+ * Returns `value` clamped between `min` and `max`
+ * 
+ * @param value The value to clamp
+ * @param min The min acceptable value
+ * @param max The max acceptable value
+ * @returns 
+ */
+export function clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
 }
 
 export async function tryAwait<T>(prom: () => PromiseLike<T>): Promise<[Error, T]> {
@@ -83,7 +101,7 @@ export class PromWrap<T = void> {
         });
 
         if (autoRejectAfter) {
-            this.rejectTimeout = setTimeout(() => { 
+            this.rejectTimeout = setTimeout(() => {
                 this.reject(new Error('timeout'));
             }, autoRejectAfter);
         }

@@ -131,20 +131,27 @@ export function upgradeSettings(): boolean {
         updated = true;
     }
 
+    if (!settings.legoHub) {
+        settings.legoHub = {
+            disabled: true,
+        };
+        updated = true;
+    }
+
     if (updated) {
         // sorting just because
         const {
             channel, identity, pubsub, streamElements,
             obsWebsocket, arrivalNotifications,
             commandTriggers, bitTriggers, pointTriggers,
-            counter,
+            counter, legoHub,
         } = settings;
 
         appSettings = {
             channel, identity, pubsub, streamElements,
             obsWebsocket, arrivalNotifications,
             commandTriggers, bitTriggers, pointTriggers,
-            counter,
+            counter, legoHub,
         };
 
         saveSettings(true);

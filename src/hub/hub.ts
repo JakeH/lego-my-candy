@@ -3,7 +3,7 @@ import { Subject } from 'rxjs';
 import { filter, take, takeWhile } from 'rxjs/operators';
 import { SequentialTaskQueue } from 'sequential-task-queue';
 import { logError, logMuted, logSuccess } from '../utils/log';
-import { PromWrap, wait } from '../utils/utils';
+import { clamp, PromWrap, wait } from '../utils/utils';
 
 /**
  * Spawns C# console app, 
@@ -96,10 +96,7 @@ async function stop() {
 
 function sendMotor(power: number, duration: number) {
 
-    if (power > 100 || power < -100) {
-        logError(`Invalid power of ${power} was supplied`);
-        return;
-    }
+    power = clamp(power, -100, 100);
 
     messageQueue.push(async () => {
         ipc.stdin.write(`${INSTRUCTION_PREFIX}motor.A.${power}\n`);

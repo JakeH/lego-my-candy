@@ -350,6 +350,18 @@ The following variables are currently available
 }
 ```
 
+#### Motor
+
+Will start and stop the motor on a connected Lego Hub.
+
+```json
+{
+    "type": "motor",
+    "power": 100,
+    "durationInSeconds": 3.5
+}
+```
+
 #### Counter
 
 Changes the current counter value by the number specified. 
