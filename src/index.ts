@@ -134,16 +134,39 @@ async function start() {
  * Stops listeners, cleans up before exiting
  */
 async function stop() {
-    await chatBot.stop();
-    await pubsub.stop();
-    await counter.stop();
-    await hub.stop();
+
+    logMuted('Cleaning up before exit');
+
+    const errHandler = (which: string) => (err: Error) => logError(`'${which}' failed to stop`, err);
+
+    await chatBot.stop().catch(errHandler('chatBot'));
+    await pubsub.stop().catch(errHandler('pubsub'));
+    await counter.stop().catch(errHandler('counter'));
+    await hub.stop().catch(errHandler('hub'));
+
+    keys.stop();
+
+    logMuted('Bye!');
+
     process.exit(0);
 }
 
+function handleInput(data: string) {
+    const message = data.toString().toLowerCase().trim();
+    switch (message) {
+        case 'exit': {
+            stop();
+        }
+    }
+}
+
 // clean up on exit
-process.on('SIGINT', stop);
-process.on('SIGTERM', stop);
+['SIGINT', 'SIGTERM', 'SIGQUIT'].forEach(signal => {
+    process.on(signal, () => {
+        logError(`PROCESS ENDED WITH ${signal}! USE THE 'exit' COMMAND NEXT TIME!`);
+        stop();
+    });
+});
 
 // entry point
 (async () => {
@@ -153,7 +176,10 @@ process.on('SIGTERM', stop);
         process.exit(0);
     }
 
-    logSuccess('Starting application');
+    logSuccess(`Starting application. Type 'exit' to end`);
+
+    const stdin = process.openStdin();
+    stdin.on('data', handleInput);
 
     await start();
 

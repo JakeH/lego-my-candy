@@ -1,17 +1,19 @@
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
-import { Subject } from 'rxjs';
+import { ReplaySubject } from 'rxjs';
 import { filter, take, takeWhile } from 'rxjs/operators';
 import { SequentialTaskQueue } from 'sequential-task-queue';
 import { logError, logMuted, logSuccess } from '../utils/log';
-import { clamp, PromWrap, wait } from '../utils/utils';
+import { clamp, PromWrap, tryAwait, wait } from '../utils/utils';
 
 /**
- * Spawns C# console app, 
+ * Spawns C# console app,
  * sends messages back and forward via stdin/out
+ *
+ * tasklist /FI "IMAGENAME eq LegoMyCandy.exe"
  */
 
 /**
- * This is the prefix given for actual commands, 
+ * This is the prefix given for actual commands,
  * everything else is treated as just plain logs
  */
 const INSTRUCTION_PREFIX = '3cf7f289-39b3-4faf-ba1a-cd7c4b8548d0|';
@@ -20,7 +22,7 @@ const BINARY_LOCATION = './.bin/hub/LegoMyCandy.exe';
 
 type ExpectedMessages = 'connected' | 'exit' | 'error.no-hub' | 'started';
 
-const messageStream$ = new Subject<ExpectedMessages>();
+const messageStream$ = new ReplaySubject<ExpectedMessages>(1);
 
 const messageQueue = new SequentialTaskQueue();
 
@@ -40,7 +42,13 @@ async function start(debug = false) {
 
     messageQueue.push(() => {
         // sit at the front of the queue until we have a connection
-        return connectBlock();
+        return connectBlock().catch(err => console.error(`connectBlock failed`, err));
+    });
+
+    messageStream$.subscribe(message => {
+        if (message.startsWith('error')) {
+            logError(`Hub: ${message}`);
+        }
     });
 }
 
@@ -59,6 +67,9 @@ async function connectBlock() {
 }
 
 function kill() {
+    if (!ipc) {
+        return;
+    }
 
     ipc.kill('SIGINT');
     ipc = null;
@@ -68,8 +79,6 @@ async function stop() {
     if (!ipc || ipc.killed) {
         return;
     }
-
-    await messageQueue.cancel();
 
     const prom = new PromWrap(15e3);
 
@@ -85,7 +94,11 @@ async function stop() {
         prom.resolve();
     });
 
-    sendIPC('exit', true);
+    // messageQueue.close(true);
+
+    internalSend('exit').catch(err => {
+        prom.reject(err);
+    });
 
     return prom.toPromise().catch(() => {
         // force kill
@@ -99,27 +112,45 @@ function sendMotor(power: number, duration: number) {
     power = clamp(power, -100, 100);
 
     messageQueue.push(async () => {
-        ipc.stdin.write(`${INSTRUCTION_PREFIX}motor.A.${power}\n`);
+        await sendIPC(`motor.A.${power}`, true);
 
         await wait(duration);
 
-        ipc.stdin.write(`${INSTRUCTION_PREFIX}motor.A.0\n`);
+        await sendIPC(`motor.A.0`, true);
     });
 
 }
 
-function sendIPC(message: string, bypassQueue = false) {
+async function internalSend(message: string) {
+    const prom = new PromWrap();
+
+    ipc.stdin.write(`${INSTRUCTION_PREFIX}${message}\n`, err => {
+        if (err) {
+            prom.reject(err);
+        } else {
+            prom.resolve();
+        }
+    });
+
+    return prom.toPromise();
+}
+
+async function sendIPC(message: string, bypassQueue = false) {
+
+    if (!ipc || ipc.killed) {
+        logError('Cannot send message without active child process');
+        return;
+    }
 
     if (debugMessages) {
         console.log(`SENT: ${message}`);
     }
+
     if (bypassQueue) {
-        ipc.stdin.write(`${INSTRUCTION_PREFIX}${message}\n`);
+        return internalSend(message);
 
     } else {
-        messageQueue.push(() => {
-            ipc.stdin.write(`${INSTRUCTION_PREFIX}${message}\n`);
-        });
+        messageQueue.push(() => internalSend(message));
     }
 }
 
@@ -127,16 +158,20 @@ function receiveMessage(data: any) {
     if (!data || !data.toString) {
         return;
     }
-    let message: string = data.toString().trim();
 
-    if (debugMessages) {
-        console.log(`RECV: ${message}`);
-    }
+    (data.toString() as string).trim().split('\n').forEach(message => {
+        message = message.trim();
 
-    if (message.startsWith(INSTRUCTION_PREFIX)) {
-        message = message.substr(INSTRUCTION_PREFIX.length + 1).trim();
-        messageStream$.next(message as ExpectedMessages);
-    }
+        if (debugMessages) {
+            console.log(`RECV: ${message}`);
+        }
+
+        if (message.startsWith(INSTRUCTION_PREFIX)) {
+            message = message.substr(INSTRUCTION_PREFIX.length).trim();
+            messageStream$.next(message as ExpectedMessages);
+        }
+
+    });
 }
 
 export default {
