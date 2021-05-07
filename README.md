@@ -324,8 +324,19 @@ Will toggle the visibility of a scene in OBS
 ```json
 {
     "type": "obs",
-    "sourceName": "Source",
-    "sceneName": "Image 1",
+    "sourceName": "Image-1",
+    "sceneName": "Main",
+    "durationInSeconds": 10
+}
+```
+
+If you provide an array of source names in the `sourceName` property, one of the sources will be used at random
+
+```json
+{
+    "type": "obs",
+    "sourceName": ["Image-1", "Image-2"],
+    "sceneName": "Main",
     "durationInSeconds": 10
 }
 ```

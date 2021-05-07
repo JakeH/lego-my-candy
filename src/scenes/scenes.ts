@@ -32,7 +32,13 @@ function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Pr
 
             case 'obs': {
                 const { durationInSeconds, sceneName, sourceName } = s;
-                return delay.then(() => obs.pulseSource(sourceName, sceneName, durationInSeconds));
+                let singleSourceName: string;
+                if (Array.isArray(sourceName)) {
+                    singleSourceName = randomFrom(sourceName);
+                } else {
+                    singleSourceName = sourceName;
+                }
+                return delay.then(() => obs.pulseSource(singleSourceName, sceneName, durationInSeconds));
             }
 
             case 'counter': {

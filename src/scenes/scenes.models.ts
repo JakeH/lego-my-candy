@@ -37,8 +37,10 @@ export interface SceneDirectiveOBS extends SceneDirectiveBase {
 
     /**
      * The source name in OBS to activate
+     *
+     * If multiple sources are provided, one will be used at random
      */
-    sourceName: string;
+    sourceName: string | string[];
 
     /**
      * The name of the scene
