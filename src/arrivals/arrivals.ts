@@ -4,17 +4,17 @@ import obs from '../obs-websocket/obs-websocket';
 import { getCurrentSettings } from '../settings/settings';
 
 /**
- * The list of users for whom we've already processed 
+ * The list of users for whom we've already processed
  * their arrival
  */
 const knownArrivalsThisStream: string[] = [];
 
 /**
  * Perfoms an action based on the first arrival per stream.
- * 
+ *
  * Call this method on `join` and `message`
- * 
- * @param username 
+ *
+ * @param username
  */
 export function checkFirstArrival(username: string) {
     const lowername = username.toLowerCase();
@@ -24,7 +24,7 @@ export function checkFirstArrival(username: string) {
         return;
     }
 
-    // query the settings in this function to allow 
+    // query the settings in this function to allow
     // for hot-reloads to take effect
     const { arrivalNotifications } = getCurrentSettings();
 
@@ -33,8 +33,8 @@ export function checkFirstArrival(username: string) {
         o.username.toLowerCase() === lowername
     );
 
-    // if we have no configuration, we can leave
-    if (!userToReact) {
+    // if we have no configuration, or if it is disabled, we can leave
+    if (!userToReact || userToReact.disabled) {
         return;
     }
 

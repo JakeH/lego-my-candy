@@ -31,7 +31,7 @@ When running the application either for the first time ever, or first time after
 This file contains confidential information. It will not leave your PC, and you should not show its contents to anyone else.
 
 | Property             | Description                                                                           |
-|----------------------|---------------------------------------------------------------------------------------|
+| -------------------- | ------------------------------------------------------------------------------------- |
 | channel              | The Twitch channel name to connect to                                                 |
 | identity             | Your identity to use when connecting to the Twitch channel for **chat** functionality |
 | pubsub               | Credentials to use for Twitch PubSub notifications of Bits, Points, and Subs.         |
@@ -91,13 +91,13 @@ In your `app.settings.json` file, fill in the `address` and `password` fields.
 
 In your `app.settings.json` file, add settings for each user you wish to have notifications for.
 
-`username` is the case-insensitive name of the user on Twitch.
-
-`sceneName` is the name of the scene in OBS which has the `sourceName` to be toggled.
-
-`sourceName` is the name of the source in OBS which will be turned on, and then off.
-
-`durationInSeconds` is how long to keep the source active for, in seconds.
+| Property          | Description                                                            |
+| ----------------- | ---------------------------------------------------------------------- |
+| disabled          | if true, this arrival notification will not be activated               |
+| username          | the case-insensitive name of the user on Twitch.                       |
+| sceneName         | the name of the scene in OBS which has the `sourceName` to be toggled. |
+| sourceName        | the name of the source in OBS which will be turned on, and then off.   |
+| durationInSeconds | is how long to keep the source active for, in seconds.                 |
 
 #### Example
 
@@ -105,6 +105,7 @@ In your `app.settings.json` file, add settings for each user you wish to have no
 
 "arrivalNotifications": [
     {
+        "disabled": true,
         "username": "UserA",
         "sceneName": "Scene",
         "sourceName": "Image1",
@@ -133,12 +134,12 @@ The `command` text can only be alphanumeric characters with no spacing. `ABCabc1
 
 The following are optional properties
 
-| Property             | Description                                                                                                        |
-|----------------------|--------------------------------------------------------------------------------------------------------------------|
-| disabled             | If true, the command will be disabled                                                                              |
-| restrictions         | Restricts who can issue the command. See **User Permissions** for info                                             |
-| cooldown             | A cooldown, in seconds. Subsequent similar commands issued during a cooldown period will be rejected.  |
-| key                  | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
+| Property     | Description                                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------------------- |
+| disabled     | If true, the command will be disabled                                                                 |
+| restrictions | Restricts who can issue the command. See **User Permissions** for info                                |
+| cooldown     | A cooldown, in seconds. Subsequent similar commands issued during a cooldown period will be rejected. |
+| key          | If provided, this keypress will execute the action. See **Key Shortcuts** for important info.         |
 
 
 ```json
@@ -200,10 +201,10 @@ With a bit trigger, you will need to supply the `minAmount` which triggers it. T
 
 The following are optional properties
 
-| Property             | Description                                                                                                        |
-|----------------------|--------------------------------------------------------------------------------------------------------------------|
-| disabled             | If true, the command will be disabled                                                                              |
-| key                  | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
+| Property | Description                                                                                   |
+| -------- | --------------------------------------------------------------------------------------------- |
+| disabled | If true, the command will be disabled                                                         |
+| key      | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
 
 ```json
 "bitTriggers": [
@@ -229,10 +230,10 @@ With a point trigger, you will need to supply the `rewardTitle` which triggers i
 
 The following are optional properties
 
-| Property             | Description                                                                                                        |
-|----------------------|--------------------------------------------------------------------------------------------------------------------|
-| disabled             | If true, the command will be disabled                                                                              |
-| key                  | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
+| Property | Description                                                                                   |
+| -------- | --------------------------------------------------------------------------------------------- |
+| disabled | If true, the command will be disabled                                                         |
+| key      | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
 
 ```json
 "pointTriggers": [
@@ -394,12 +395,12 @@ To decrement, use a negative number.
 
 To use a counter, first add some basic information to the `app.settings.json` file's `counter` setting. 
 
-| Property        | Description                                    |
-| ------------ | ---------------------------------------------- |
-| sourceDirectory | The directory to store the "database" or counts, and the overlay text file for OBS |
-| gameId | The name of the game being played |
-| text | (Optional) Text to write to the OBS overlay file. Can use the token `{{count}}` to replace with the count |
-| disabled | (Optional) If true, will disable this section |
+| Property        | Description                                                                                               |
+| --------------- | --------------------------------------------------------------------------------------------------------- |
+| sourceDirectory | The directory to store the "database" or counts, and the overlay text file for OBS                        |
+| gameId          | The name of the game being played                                                                         |
+| text            | (Optional) Text to write to the OBS overlay file. Can use the token `{{count}}` to replace with the count |
+| disabled        | (Optional) If true, will disable this section                                                             |
 
 This counter will store a JSON file and a text file in the `sourceDirectory` folder. When starting the app, changing the `gameId` or the `disabled` properties, the contents of the JSON file will be read to find a matching entry for `gameId`. Case matters, so please reference that file if you've forgotten the game id.
 

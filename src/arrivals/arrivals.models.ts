@@ -19,4 +19,9 @@ export interface UserJoinedSourceActivation {
      * The number of seconds to keep the OBS scene activated
      */
     durationInSeconds: number;
+
+    /**
+     * If true, the arrival will not be played
+     */
+    disabled?: boolean;
 }
