@@ -107,10 +107,6 @@ async function start() {
                 processCommand(event.command, event);
                 ev(event, `${lh(event.username)} issued '${lh(event.command)}', '${lh(event.message)}'`);
                 break;
-            case 'join':
-                checkFirstArrival(event.username);
-                ev(event, `${lh(event.username)}`);
-                break;
             case 'leave':
                 ev(event, `${lh(event.username)}`);
                 break;
