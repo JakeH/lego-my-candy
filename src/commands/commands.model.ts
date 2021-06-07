@@ -18,6 +18,11 @@ export interface CommandDirective extends KeyActivatedDirective {
     command: string;
 
     /**
+     * Other commands this can be triggered by.
+     */
+    aliases?: string[];
+
+    /**
      * Restricts this command to specific user types
      */
     restrictions?: UserRestrictions;

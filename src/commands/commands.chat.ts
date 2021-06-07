@@ -36,18 +36,22 @@ export function processCommand(command: string, context: CommandContext) {
         return;
     }
 
-    const directive = commandTriggers.find(o => o.command.toLowerCase() === command.toLowerCase());
+    // find the directive either by the root command, or its aliases
+    const directive = commandTriggers
+        // if this command is not disabled
+        .filter(o => o.disabled !== true)
+        // if this command is meant for mods or vip...
+        .filter(o => userHasPermission(context, o.restrictions))
+        .find(o =>
+            o.command.toLowerCase() === command.toLowerCase()
+            || o.aliases?.find(a => a.toLowerCase() === command.toLowerCase()),
+        );
 
-    // if we have no matching directive for this command,
-    // or it is disabled
-    if (!directive || directive.disabled) {
+    // if we have no matching directive for this command...
+    if (!directive) {
         return;
     }
 
-    // if this command is meant for mods or vip...
-    if (!userHasPermission(context, directive.restrictions)) {
-        return;
-    }
     let recent = getRecent(command);
 
     // if we have a cooldown...

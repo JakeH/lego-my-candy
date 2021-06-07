@@ -140,12 +140,14 @@ The following are optional properties
 | restrictions | Restricts who can issue the command. See **User Permissions** for info                                |
 | cooldown     | A cooldown, in seconds. Subsequent similar commands issued during a cooldown period will be rejected. |
 | key          | If provided, this keypress will execute the action. See **Key Shortcuts** for important info.         |
+| aliases      | A list of other commands which can trigger this                                                       |
 
 
 ```json
 "commandTriggers": [
     {
         "command": "test",
+        "aliases": ["butt", "butts"],
         "restrictions": {
             "moderator": true,
         },
