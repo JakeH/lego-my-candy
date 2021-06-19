@@ -138,20 +138,27 @@ export function upgradeSettings(): boolean {
         updated = true;
     }
 
+    if (!settings.nerf) {
+        settings.nerf = {
+            port: 'COM??',
+            disabled: false,
+        };
+    }
+
     if (updated) {
         // sorting just because
         const {
             channel, identity, pubsub, streamElements,
             obsWebsocket, arrivalNotifications,
             commandTriggers, bitTriggers, pointTriggers,
-            counter, legoHub,
+            counter, legoHub, nerf,
         } = settings;
 
         appSettings = {
             channel, identity, pubsub, streamElements,
             obsWebsocket, arrivalNotifications,
             commandTriggers, bitTriggers, pointTriggers,
-            counter, legoHub,
+            counter, legoHub, nerf,
         };
 
         saveSettings(true);

@@ -8,6 +8,7 @@
     "audio": "ts-node ./src/audio/audio.ts",
     "keys:debug": "ts-node ./src/keys/keys-test.ts",
     "hub:debug": "ts-node ./src/hub/hub-test.ts",
+    "nerf:debug": "ts-node ./src/nerf/nerf-test.ts",
     "lint": "tslint --project tslint.json -t stylish",
     "build": "tsc"
   },

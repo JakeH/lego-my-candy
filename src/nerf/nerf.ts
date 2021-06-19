@@ -1,12 +1,17 @@
 import * as SerialPort from 'serialport';
 import { PromWrap } from '../utils/utils';
 import { getCurrentSettings } from '../settings/settings';
-import { logError, logSuccess } from '../utils/log';
+import { logError, logSuccess, logWarn } from '../utils/log';
 
 let port: SerialPort;
 
 async function connectToNerf() {
     const { nerf } = getCurrentSettings();
+
+    if (nerf.disabled) {
+        logWarn('Nerf is disabled in settings');
+        return Promise.resolve();
+    }
 
     const prom = new PromWrap();
 

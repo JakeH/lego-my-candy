@@ -6,6 +6,7 @@ import { processBitCommand, processCommand, processPointCommand } from './comman
 import { CommandContext } from './commands/commands.model';
 import keys from './keys/keys';
 import obs from './obs-websocket/obs-websocket';
+import nerf from './nerf/nerf';
 import pubsub from './pubsub/pubsub';
 import counter from './counter/counter';
 import { getCurrentSettings, upgradeSettings } from './settings/settings';
@@ -84,6 +85,12 @@ async function start() {
     const [obsErr] = await tryAwait(() => obs.start());
     if (obsErr) {
         logError(`Could not connect to OBS`, obsErr);
+    }
+
+    // wait to connect to Nerf
+    const [nerfErr] = await tryAwait(() => nerf.start());
+    if (nerfErr) {
+        logError(`Could not start Nerf`, nerfErr);
     }
 
     // connect to Twitch PubSub
