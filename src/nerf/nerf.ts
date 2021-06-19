@@ -29,7 +29,7 @@ async function connectToNerf() {
 
     });
 
-    return prom;
+    return prom.toPromise();
 
 }
 
@@ -47,16 +47,11 @@ async function fireDart() {
 
     });
 
-    return prom;
+    return prom.toPromise();
 }
 
 export default {
 
-    start: async () => {
-        return connectToNerf();
-    },
-
-    fire: async () => {
-        return fireDart();
-    }
+    start: connectToNerf,
+    fire: fireDart,
 };
