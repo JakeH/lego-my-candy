@@ -8,6 +8,7 @@
     "audio": "ts-node ./src/audio/audio.ts",
     "keys:debug": "ts-node ./src/keys/keys-test.ts",
     "hub:debug": "ts-node ./src/hub/hub-test.ts",
+    "nerf:debug": "ts-node ./src/nerf/nerf-test.ts",
     "lint": "tslint --project tslint.json -t stylish",
     "build": "tsc"
   },
@@ -24,6 +25,7 @@
   "homepage": "https://github.com/JakeH/lego-my-candy#readme",
   "devDependencies": {
     "@types/node": "^14.14.41",
+    "@types/serialport": "^8.0.1",
     "@types/tmi.js": "^1.7.1",
     "@types/ws": "^7.4.1",
     "ts-node": "^9.1.1",
@@ -39,6 +41,7 @@
     "rxjs": "^6.6.7",
     "say": "^0.16.0",
     "sequential-task-queue": "^1.2.1",
+    "serialport": "^9.1.0",
     "tmi.js": "^1.8.3",
     "ws": "^7.4.6"
   }

@@ -1,8 +1,9 @@
 import audio from '../audio/audio';
 import chatbot from '../chat-bot/chat-bot';
-import obs from '../obs-websocket/obs-websocket';
 import counter from '../counter/counter';
 import hub from '../hub/hub';
+import nerf from '../nerf/nerf';
+import obs from '../obs-websocket/obs-websocket';
 import { addToQueue, randomFrom, tokenStringParser, wait } from '../utils/utils';
 import { AllSceneTypes, SceneContext } from './scenes.models';
 
@@ -49,6 +50,11 @@ function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Pr
             case 'motor': {
                 const { durationInSeconds, power } = s;
                 return delay.then(() => hub.sendMotor(power, durationInSeconds * 1e3));
+            }
+
+            case 'nerf': {
+                // no specific settings as of now
+                return delay.then(() => nerf.fire());
             }
 
         }

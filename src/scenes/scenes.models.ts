@@ -1,4 +1,4 @@
-export type SceneTypes = 'audio' | 'obs' | 'chat' | 'counter' | 'motor';
+export type SceneTypes = 'audio' | 'obs' | 'chat' | 'counter' | 'motor' | 'nerf';
 
 export interface SceneContext {
     /**
@@ -92,9 +92,16 @@ export interface SceneDirectiveMotor extends SceneDirectiveBase {
     durationInSeconds: number;
 }
 
+export interface SceneDirectiveNerf extends SceneDirectiveBase {
+    readonly type: 'nerf';
+
+    // for now we don't have additional options, just a single fire
+}
+
 export type AllSceneTypes =
     | SceneDirectiveChat
     | SceneDirectiveOBS
     | SceneDirectiveAudio
     | SceneDirectiveCount
-    | SceneDirectiveMotor;
+    | SceneDirectiveMotor
+    | SceneDirectiveNerf;
