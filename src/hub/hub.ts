@@ -107,16 +107,16 @@ async function stop() {
     });
 }
 
-function sendMotor(power: number, duration: number) {
+function sendMotor(power: number, duration: number, id: string) {
 
     power = clamp(power, -100, 100);
 
     messageQueue.push(async () => {
-        await sendIPC(`motor.A.${power}`, true);
+        await sendIPC(`motor.${id}.${power}`, true);
 
         await wait(duration);
 
-        await sendIPC(`motor.A.0`, true);
+        await sendIPC(`motor.${id}.0`, true);
     });
 
 }

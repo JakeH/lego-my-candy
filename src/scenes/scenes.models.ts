@@ -1,4 +1,4 @@
-export type SceneTypes = 'audio' | 'obs' | 'chat' | 'counter' | 'motor' | 'nerf';
+export type SceneTypes = 'audio' | 'obs' | 'chat' | 'counter' | 'motor' | 'nerf' | 'key';
 
 export interface SceneContext {
     /**
@@ -90,6 +90,11 @@ export interface SceneDirectiveMotor extends SceneDirectiveBase {
      * The duration, in seconds, to apply power to the motor
      */
     durationInSeconds: number;
+
+    /**
+     * A, B, C, or D
+     */
+    id: string;
 }
 
 export interface SceneDirectiveNerf extends SceneDirectiveBase {
@@ -98,10 +103,24 @@ export interface SceneDirectiveNerf extends SceneDirectiveBase {
     // for now we don't have additional options, just a single fire
 }
 
+export interface SceneDirectiveKey extends SceneDirectiveBase {
+    readonly type: 'key';
+
+    /**
+     * The keys to send. For special keys, wrap in brackets.
+     *
+     * Hello!{ENTER}
+     *
+     * {F7}{HOME}
+     */
+    keys: string;
+}
+
 export type AllSceneTypes =
     | SceneDirectiveChat
     | SceneDirectiveOBS
     | SceneDirectiveAudio
     | SceneDirectiveCount
     | SceneDirectiveMotor
+    | SceneDirectiveKey
     | SceneDirectiveNerf;

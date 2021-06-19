@@ -1,3 +1,4 @@
+import keys from '../keys/keys';
 import audio from '../audio/audio';
 import chatbot from '../chat-bot/chat-bot';
 import counter from '../counter/counter';
@@ -48,13 +49,17 @@ function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Pr
             }
 
             case 'motor': {
-                const { durationInSeconds, power } = s;
-                return delay.then(() => hub.sendMotor(power, durationInSeconds * 1e3));
+                const { durationInSeconds, power, id } = s;
+                return delay.then(() => hub.sendMotor(power, durationInSeconds * 1e3, id));
             }
 
             case 'nerf': {
                 // no specific settings as of now
                 return delay.then(() => nerf.fire());
+            }
+
+            case 'key': {
+                return delay.then(() => keys.send(s.keys));
             }
 
         }
