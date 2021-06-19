@@ -34,18 +34,24 @@ async function connectToNerf() {
 }
 
 async function fireDart() {
+
     const prom = new PromWrap();
 
-    port.write('1', (err) => {
-        if (err) {
-            logError('Failed fire dart', err);
-            prom.reject(err);
-        } else {
-            logSuccess('PEW! PEW! PEW!');
-            prom.resolve();
-        }
+    if (port && port.isOpen) {
+        port.write('1', (err) => {
+            if (err) {
+                logError('Failed fire dart', err);
+                prom.reject(err);
+            } else {
+                logSuccess('PEW! PEW! PEW!');
+                prom.resolve();
+            }
 
-    });
+        });
+    } else {
+        logError('Nerf Port is not established or open');
+        prom.reject(new Error('Nerf Port is not established or open'));
+    }
 
     return prom.toPromise();
 }

@@ -1,7 +1,5 @@
-
 import nerf from './nerf';
 import * as SerialPort from 'serialport';
-import { tryAwait } from '../utils/utils';
 
 (async () => {
 
