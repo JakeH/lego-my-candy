@@ -122,6 +122,16 @@ async function start() {
                 ev(event, `${lh(event.username)} says '${lh(event.message)}'`);
                 break;
             case 'raided':
+                // when raided, we issue a fake command, which should
+                // be guarded to only allow the broadcaster to invoke
+                processCommand('private-raided-command', {
+                    ...event,
+                    broadcaster: true,
+                    founder: true,
+                    moderator: true,
+                    subscriber: true,
+                    vip: true,
+                });
                 ev(event, `${lh(event.username)} with '${lh(event.viewers)} viewers'`);
                 break;
             default:
@@ -146,6 +156,7 @@ async function stop() {
     await pubsub.stop().catch(errHandler('pubsub'));
     await counter.stop().catch(errHandler('counter'));
     await hub.stop().catch(errHandler('hub'));
+    await nerf.stop().catch(errHandler('nerf'));
 
     keys.stop();
 

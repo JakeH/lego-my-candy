@@ -33,6 +33,22 @@ async function connectToNerf() {
 
 }
 
+async function stop() {
+    const prom = new PromWrap();
+
+    if (port) {
+        port.close(err => {
+            if (err) {
+                prom.reject(err);
+            } else {
+                prom.resolve();
+            }
+        });
+    }
+
+    return prom.toPromise();
+}
+
 async function fireDart() {
 
     const prom = new PromWrap();
@@ -60,4 +76,5 @@ export default {
 
     start: connectToNerf,
     fire: fireDart,
+    stop,
 };
