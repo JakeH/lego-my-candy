@@ -10,8 +10,16 @@
 4. Follow the steps in the **App Settings** section
 5. Install the `ffplay` binary. See the **Audio Requirement** section
 6. Run `npm run start` to begin the script
-7. Press `CTRL+C` to exit
+7. Type `exit` in the terminal to exit. You can use `CTRL+C` to exit as a last resort.
 
+## CLI Commmands
+
+You can type the following commands directly into the terminal window while the application is running. 
+
+| Command | Purpose |
+|---|---|
+| exit | Safely ends the application |
+| restart | Stops and then starts all of the services.  Some state information is not cleared, making this approach better than an exit/start while stream is live. |
 ## Audio Requirement
 
 In order to play audio, you will need to download a binary file for this application to use. 
@@ -20,7 +28,7 @@ In order to play audio, you will need to download a binary file for this applica
 2. Scroll down to the **Release** section
 3. Download the file that ends with `ffmpeg-release-essentials.7z`
    1. if you don't have 7-Zip installed, download the one ending in `.zip` instead of `.7z`
-4. Create a file in this folder called `.bin`
+4. Create a folder in this project's root folder called `.bin`
 5. Extract the file `ffplay.exe` from the `ffmpeg-4.4-essentials_build/bin` folder, into the `.bin` folder
 
 

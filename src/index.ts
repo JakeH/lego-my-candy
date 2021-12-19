@@ -94,10 +94,9 @@ async function start() {
     }
 
     // connect to Twitch PubSub
-    try {
-        startPubSub();
-    } catch (error) {
-        logError('Cannot start pubsub listener', error);
+    const [psErr] = await tryAwait(() => startPubSub());
+    if (psErr) {
+        logError('Cannot start pubsub listener', psErr);
     }
 
     // listen for chat events...
@@ -146,9 +145,9 @@ async function start() {
 /**
  * Stops listeners, cleans up before exiting
  */
-async function stop() {
+async function stop(exitOnDone: boolean = true) {
 
-    logMuted('Cleaning up before exit');
+    logMuted('Shutting down services');
 
     const errHandler = (which: string) => (err: Error) => logError(`'${which}' failed to stop`, err);
 
@@ -160,9 +159,23 @@ async function stop() {
 
     keys.stop();
 
-    logMuted('Bye!');
+    if (exitOnDone) {
+        logMuted('Bye!');
+        process.exit(0);
+    }
+}
 
-    process.exit(0);
+async function restart() {
+
+    logMuted('Restarting all services');
+
+    await stop(false);
+
+    logMuted('Services are stopped');
+
+    await start();
+
+    logSuccess('Restart complete');
 }
 
 function handleInput(data: string) {
@@ -170,6 +183,11 @@ function handleInput(data: string) {
     switch (message) {
         case 'exit': {
             stop();
+            break;
+        }
+        case 'restart': {
+            restart();
+            break;
         }
     }
 }
