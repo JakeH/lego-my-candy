@@ -3,12 +3,14 @@ import { PromWrap, tryAwait, wait } from '../utils/utils';
 import { getCurrentSettings } from '../settings/settings';
 import { logError, logMuted, logSuccess } from '../utils/log';
 
-const obs = new OBSWebsocket();
+let obs: OBSWebsocket;
 
 async function connectToOBS() {
     const { obsWebsocket } = getCurrentSettings();
 
     const prom = new PromWrap();
+
+    obs = new OBSWebsocket();
 
     obs.connect(obsWebsocket).catch(err => prom.reject(err));
 
@@ -26,11 +28,17 @@ export default {
         return connectToOBS();
     },
 
+    stop: async() => {
+        obs.disconnect();
+        obs = null;
+        return Promise.resolve();
+    },
+
     getSourcesList: async () => obs.send('GetSourcesList'),
 
     /**
      * Turns a source on, and then off after a specific period of time
-     * 
+     *
      * @param source The name of the source to target
      * @param durationInSeconds The duration for this source to be on
      */

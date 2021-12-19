@@ -8,7 +8,7 @@ import obs from '../obs-websocket/obs-websocket';
 import { addToQueue, randomFrom, tokenStringParser, wait } from '../utils/utils';
 import { AllSceneTypes, SceneContext } from './scenes.models';
 
-function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Promise<void> {
+async function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Promise<void> {
 
     const promises = scenes.map(async s => {
 
@@ -65,7 +65,7 @@ function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Pr
         }
     });
 
-    return Promise.all(promises).then(() => { });
+    await Promise.all(promises);
 
 }
 

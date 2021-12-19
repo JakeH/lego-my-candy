@@ -156,6 +156,7 @@ async function stop(exitOnDone: boolean = true) {
     await counter.stop().catch(errHandler('counter'));
     await hub.stop().catch(errHandler('hub'));
     await nerf.stop().catch(errHandler('nerf'));
+    await obs.stop().catch(errHandler('obs'));
 
     keys.stop();
 
