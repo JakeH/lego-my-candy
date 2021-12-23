@@ -44,6 +44,8 @@ async function stop() {
                 prom.resolve();
             }
         });
+    } else {
+        prom.resolve();
     }
 
     return prom.toPromise();

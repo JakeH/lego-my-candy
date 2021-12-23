@@ -152,20 +152,34 @@ async function start() {
 }
 
 /**
+ * Executes the stop function for a single individual service
+ * @param name Name of the service for use in logging
+ * @param stopFun The stop function to execute
+ */
+async function individualStop(name: string, stopFun: () => Promise<void>) {
+    const [err] = await tryAwait(() => stopFun());
+    if (err) {
+        logError(`'${name}' failed to stop`, err);
+    } else {
+        logSuccess(`'${name}' stopped successfully`);
+    }
+}
+
+/**
  * Stops listeners, cleans up before exiting
  */
 async function stop(exitOnDone: boolean = true) {
 
     logMuted('Shutting down services');
 
-    const errHandler = (which: string) => (err: Error) => logError(`'${which}' failed to stop`, err);
+    // const errHandler = (which: string) => (err: Error) => logError(`'${which}' failed to stop`, err);
 
-    await chatBot.stop().catch(errHandler('chatBot'));
-    await pubsub.stop().catch(errHandler('pubsub'));
-    await counter.stop().catch(errHandler('counter'));
-    await hub.stop().catch(errHandler('hub'));
-    await nerf.stop().catch(errHandler('nerf'));
-    await obs.stop().catch(errHandler('obs'));
+    await individualStop('chatBot', chatBot.stop);
+    await individualStop('pubsub', pubsub.stop);
+    await individualStop('counter', counter.stop);
+    await individualStop('hub', hub.stop);
+    await individualStop('nerf', nerf.stop);
+    await individualStop('obs', obs.stop);
 
     pubsubSub$.unsubscribe();
     eventsSub$.unsubscribe();

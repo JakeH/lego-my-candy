@@ -20,9 +20,9 @@ settingsLoaded$.subscribe(settings => {
     // prepare the list of keys to watch for as the settings change
 
     keysToWatch = [
-        ...settings.commandTriggers,
-        ...settings.pointTriggers,
-        ...settings.bitTriggers,
+        ...(settings.commandTriggers || []),
+        ...(settings.pointTriggers || []),
+        ...(settings.bitTriggers || []),
     ]
         .filter(Boolean)
         .filter(o => o.key && !o.disabled)
@@ -41,9 +41,9 @@ function processKey(keycode: number) {
     const rev = KEYBOARD_MAPPING[keycode];
 
     const candidates = [
-        ...commandTriggers,
-        ...pointTriggers,
-        ...bitTriggers,
+        ...(commandTriggers || []),
+        ...(pointTriggers || []),
+        ...(bitTriggers || []),
     ]
         .filter(Boolean)
         .filter(o => o.key && !o.disabled)

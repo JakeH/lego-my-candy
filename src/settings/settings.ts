@@ -104,6 +104,11 @@ export function upgradeSettings(): boolean {
         updated = true;
     }
 
+    if (!settings.arrivalNotifications) {
+        settings.arrivalNotifications = [];
+        updated = true;
+    }
+
     if (!settings.bitTriggers) {
         settings.bitTriggers = [];
         updated = true;
