@@ -1,9 +1,9 @@
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
-import { ReplaySubject } from 'rxjs';
+import { ReplaySubject, Subscription } from 'rxjs';
 import { filter, take, takeWhile } from 'rxjs/operators';
 import { SequentialTaskQueue } from 'sequential-task-queue';
 import { logError, logMuted, logSuccess } from '../utils/log';
-import { clamp, PromWrap, tryAwait, wait } from '../utils/utils';
+import { clamp, PromWrap, wait } from '../utils/utils';
 
 /**
  * Spawns C# console app,
@@ -23,6 +23,8 @@ const BINARY_LOCATION = './.bin/hub/LegoMyCandy.exe';
 type ExpectedMessages = 'connected' | 'exit' | 'error.no-hub' | 'started';
 
 const messageStream$ = new ReplaySubject<ExpectedMessages>(1);
+
+let messageStreamSub$: Subscription = Subscription.EMPTY;
 
 const messageQueue = new SequentialTaskQueue();
 
@@ -45,7 +47,10 @@ async function start(debug = false) {
         return connectBlock().catch(err => console.error(`connectBlock failed`, err));
     });
 
-    messageStream$.subscribe(message => {
+    // double-check
+    messageStreamSub$.unsubscribe();
+
+    messageStreamSub$ = messageStream$.subscribe(message => {
         if (message.startsWith('error')) {
             logError(`Hub: ${message}`);
         }
@@ -91,6 +96,11 @@ async function stop() {
         kill();
 
         logMuted('Safely killing Hub connection');
+        messageStreamSub$.unsubscribe();
+
+        ipc.stderr.removeAllListeners('data');
+        ipc.stdout.removeAllListeners('data');
+
         prom.resolve();
     });
 

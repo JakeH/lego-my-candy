@@ -14,7 +14,7 @@ async function connectToOBS() {
 
     obs.connect(obsWebsocket).catch(err => prom.reject(err));
 
-    obs.on('AuthenticationSuccess', () => {
+    obs.once('AuthenticationSuccess', () => {
         logSuccess('Connected to OBS');
         prom.resolve();
     });

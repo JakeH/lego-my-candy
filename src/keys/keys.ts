@@ -77,6 +77,8 @@ function start() {
 
 function stop() {
     ioHook.stop();
+    ioHook.unregisterAllShortcuts();
+    ioHook.removeAllListeners('keydown');
 }
 
 export default {

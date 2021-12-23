@@ -8,7 +8,7 @@ import { logSuccess } from '../utils/log';
 const COUNTER_JSON = '_counters.json';
 const OVERLAY_TEXT = '_overlay.txt';
 
-let settingsSub = Subscription.EMPTY;
+let settingsSub$ = Subscription.EMPTY;
 
 let currentGameId: string;
 let currentCount: number;
@@ -39,7 +39,7 @@ function processCounter(change: number | string) {
 }
 
 async function start() {
-    settingsSub = settingsLoaded$.subscribe(settings => {
+    settingsSub$ = settingsLoaded$.subscribe(settings => {
         const { counter } = settings;
         if (!counter || counter.disabled) {
             currentGameId = null;
@@ -78,7 +78,7 @@ async function start() {
 }
 
 async function stop() {
-    settingsSub.unsubscribe();
+    settingsSub$.unsubscribe();
 }
 
 export default {

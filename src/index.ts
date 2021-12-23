@@ -13,19 +13,26 @@ import { getCurrentSettings, upgradeSettings } from './settings/settings';
 import { logError, logMuted, logSuccess } from './utils/log';
 import { lh, tryAwait } from './utils/utils';
 import hub from './hub/hub';
+import { Subscription } from 'rxjs';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
     logMuted(`${eventName} ${message}`);
 }
 
+let pubsubSub$: Subscription = Subscription.EMPTY;
+let eventsSub$: Subscription = Subscription.EMPTY;
+
 async function startPubSub() {
+    // double-check
+    pubsubSub$.unsubscribe();
+
     // allow this to throw errors
     const client = pubsub.getClient();
     await client.connect();
     await client.startListening();
 
-    client.events$.subscribe(event => {
+    pubsubSub$ = client.events$.subscribe(event => {
         const eventName = bgRed().bold().white(event.type.toUpperCase());
         let message = '';
 
@@ -99,8 +106,10 @@ async function start() {
         logError('Cannot start pubsub listener', psErr);
     }
 
+    // double-check
+    eventsSub$.unsubscribe();
     // listen for chat events...
-    chatBot.eventStream().subscribe(event => {
+    eventsSub$ = chatBot.eventStream().subscribe(event => {
 
         // do something with each event type...
 
@@ -157,6 +166,9 @@ async function stop(exitOnDone: boolean = true) {
     await hub.stop().catch(errHandler('hub'));
     await nerf.stop().catch(errHandler('nerf'));
     await obs.stop().catch(errHandler('obs'));
+
+    pubsubSub$.unsubscribe();
+    eventsSub$.unsubscribe();
 
     keys.stop();
 
