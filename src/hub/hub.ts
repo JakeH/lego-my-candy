@@ -93,13 +93,12 @@ async function stop() {
         take(1),
     ).subscribe(() => {
         // received exit ack, okay to kill.
+        ipc.stderr?.removeAllListeners('data');
+        ipc.stdout?.removeAllListeners('data');
         kill();
 
         logMuted('Safely killing Hub connection');
         messageStreamSub$.unsubscribe();
-
-        ipc.stderr.removeAllListeners('data');
-        ipc.stdout.removeAllListeners('data');
 
         prom.resolve();
     });
