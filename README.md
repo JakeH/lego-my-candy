@@ -10,8 +10,16 @@
 4. Follow the steps in the **App Settings** section
 5. Install the `ffplay` binary. See the **Audio Requirement** section
 6. Run `npm run start` to begin the script
-7. Press `CTRL+C` to exit
+7. Type `exit` in the terminal to exit. You can use `CTRL+C` to exit as a last resort.
 
+## CLI Commmands
+
+You can type the following commands directly into the terminal window while the application is running. 
+
+| Command | Purpose |
+|---|---|
+| exit | Safely ends the application |
+| restart | Stops and then starts all of the services.  Some state information is not cleared, making this approach better than an exit/start while stream is live. |
 ## Audio Requirement
 
 In order to play audio, you will need to download a binary file for this application to use. 
@@ -20,7 +28,7 @@ In order to play audio, you will need to download a binary file for this applica
 2. Scroll down to the **Release** section
 3. Download the file that ends with `ffmpeg-release-essentials.7z`
    1. if you don't have 7-Zip installed, download the one ending in `.zip` instead of `.7z`
-4. Create a file in this folder called `.bin`
+4. Create a folder in this project's root folder called `.bin`
 5. Extract the file `ffplay.exe` from the `ffmpeg-4.4-essentials_build/bin` folder, into the `.bin` folder
 
 
@@ -31,7 +39,7 @@ When running the application either for the first time ever, or first time after
 This file contains confidential information. It will not leave your PC, and you should not show its contents to anyone else.
 
 | Property             | Description                                                                           |
-|----------------------|---------------------------------------------------------------------------------------|
+| -------------------- | ------------------------------------------------------------------------------------- |
 | channel              | The Twitch channel name to connect to                                                 |
 | identity             | Your identity to use when connecting to the Twitch channel for **chat** functionality |
 | pubsub               | Credentials to use for Twitch PubSub notifications of Bits, Points, and Subs.         |
@@ -91,13 +99,13 @@ In your `app.settings.json` file, fill in the `address` and `password` fields.
 
 In your `app.settings.json` file, add settings for each user you wish to have notifications for.
 
-`username` is the case-insensitive name of the user on Twitch.
-
-`sceneName` is the name of the scene in OBS which has the `sourceName` to be toggled.
-
-`sourceName` is the name of the source in OBS which will be turned on, and then off.
-
-`durationInSeconds` is how long to keep the source active for, in seconds.
+| Property          | Description                                                            |
+| ----------------- | ---------------------------------------------------------------------- |
+| disabled          | if true, this arrival notification will not be activated               |
+| username          | the case-insensitive name of the user on Twitch.                       |
+| sceneName         | the name of the scene in OBS which has the `sourceName` to be toggled. |
+| sourceName        | the name of the source in OBS which will be turned on, and then off.   |
+| durationInSeconds | is how long to keep the source active for, in seconds.                 |
 
 #### Example
 
@@ -105,6 +113,7 @@ In your `app.settings.json` file, add settings for each user you wish to have no
 
 "arrivalNotifications": [
     {
+        "disabled": true,
         "username": "UserA",
         "sceneName": "Scene",
         "sourceName": "Image1",
@@ -133,25 +142,24 @@ The `command` text can only be alphanumeric characters with no spacing. `ABCabc1
 
 The following are optional properties
 
-| Property             | Description                                                                                                        |
-|----------------------|--------------------------------------------------------------------------------------------------------------------|
-| disabled             | If true, the command will be disabled                                                                              |
-| restrictions         | Restricts who can issue the command. See **User Permissions** for info                                             |
-| delayBetweenCommands | A buffer between executions of the same command, in seconds.                                                       |
-| ignoreDuplicates     | If true, it will ignore commands issued while there is either a command actively playing, or queued to be executed |
-| cooldown             | A cooldown, in seconds. Subsequent similar commands issued during a cooldown period will be rejected.  |
-| key                  | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
+| Property     | Description                                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------------------- |
+| disabled     | If true, the command will be disabled                                                                 |
+| restrictions | Restricts who can issue the command. See **User Permissions** for info                                |
+| cooldown     | A cooldown, in seconds. Subsequent similar commands issued during a cooldown period will be rejected. |
+| key          | If provided, this keypress will execute the action. See **Key Shortcuts** for important info.         |
+| aliases      | A list of other commands which can trigger this                                                       |
 
 
 ```json
 "commandTriggers": [
     {
         "command": "test",
+        "aliases": ["butt", "butts"],
         "restrictions": {
             "moderator": true,
         },
-        "delayBetweenCommands": 10,
-        "ignoreDuplicates": true,
+        "cooldown": 10,
         "directives": [
             {
                 "type": "chat",
@@ -203,10 +211,10 @@ With a bit trigger, you will need to supply the `minAmount` which triggers it. T
 
 The following are optional properties
 
-| Property             | Description                                                                                                        |
-|----------------------|--------------------------------------------------------------------------------------------------------------------|
-| disabled             | If true, the command will be disabled                                                                              |
-| key                  | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
+| Property | Description                                                                                   |
+| -------- | --------------------------------------------------------------------------------------------- |
+| disabled | If true, the command will be disabled                                                         |
+| key      | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
 
 ```json
 "bitTriggers": [
@@ -232,10 +240,10 @@ With a point trigger, you will need to supply the `rewardTitle` which triggers i
 
 The following are optional properties
 
-| Property             | Description                                                                                                        |
-|----------------------|--------------------------------------------------------------------------------------------------------------------|
-| disabled             | If true, the command will be disabled                                                                              |
-| key                  | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
+| Property | Description                                                                                   |
+| -------- | --------------------------------------------------------------------------------------------- |
+| disabled | If true, the command will be disabled                                                         |
+| key      | If provided, this keypress will execute the action. See **Key Shortcuts** for important info. |
 
 ```json
 "pointTriggers": [
@@ -327,8 +335,19 @@ Will toggle the visibility of a scene in OBS
 ```json
 {
     "type": "obs",
-    "sourceName": "Source",
-    "sceneName": "Image 1",
+    "sourceName": "Image-1",
+    "sceneName": "Main",
+    "durationInSeconds": 10
+}
+```
+
+If you provide an array of source names in the `sourceName` property, one of the sources will be used at random
+
+```json
+{
+    "type": "obs",
+    "sourceName": ["Image-1", "Image-2"],
+    "sceneName": "Main",
     "durationInSeconds": 10
 }
 ```
@@ -347,6 +366,18 @@ The following variables are currently available
 {
     "type": "chat",
     "message": "Hello, {{username}}. I love you."
+}
+```
+
+#### Motor
+
+Will start and stop the motor on a connected Lego Hub.
+
+```json
+{
+    "type": "motor",
+    "power": 100,
+    "durationInSeconds": 3.5
 }
 ```
 
@@ -374,12 +405,12 @@ To decrement, use a negative number.
 
 To use a counter, first add some basic information to the `app.settings.json` file's `counter` setting. 
 
-| Property        | Description                                    |
-| ------------ | ---------------------------------------------- |
-| sourceDirectory | The directory to store the "database" or counts, and the overlay text file for OBS |
-| gameId | The name of the game being played |
-| text | (Optional) Text to write to the OBS overlay file. Can use the token `{{count}}` to replace with the count |
-| disabled | (Optional) If true, will disable this section |
+| Property        | Description                                                                                               |
+| --------------- | --------------------------------------------------------------------------------------------------------- |
+| sourceDirectory | The directory to store the "database" or counts, and the overlay text file for OBS                        |
+| gameId          | The name of the game being played                                                                         |
+| text            | (Optional) Text to write to the OBS overlay file. Can use the token `{{count}}` to replace with the count |
+| disabled        | (Optional) If true, will disable this section                                                             |
 
 This counter will store a JSON file and a text file in the `sourceDirectory` folder. When starting the app, changing the `gameId` or the `disabled` properties, the contents of the JSON file will be read to find a matching entry for `gameId`. Case matters, so please reference that file if you've forgotten the game id.
 

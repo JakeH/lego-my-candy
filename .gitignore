@@ -3,7 +3,8 @@ app.settings.json
 app.settings.json.bak
 
 #binaries
-.bin
+.bin/ffplay.exe
+.bin/hub/log.txt
 
 # Logs
 logs

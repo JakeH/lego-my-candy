@@ -1,18 +1,21 @@
+import keys from '../keys/keys';
 import audio from '../audio/audio';
 import chatbot from '../chat-bot/chat-bot';
-import obs from '../obs-websocket/obs-websocket';
 import counter from '../counter/counter';
+import hub from '../hub/hub';
+import nerf from '../nerf/nerf';
+import obs from '../obs-websocket/obs-websocket';
 import { addToQueue, randomFrom, tokenStringParser, wait } from '../utils/utils';
 import { AllSceneTypes, SceneContext } from './scenes.models';
 
-function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Promise<void> {
+async function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Promise<void> {
 
     const promises = scenes.map(async s => {
 
         const delay = wait((s.delayInSeconds || 0) * 1000);
 
         switch (s.type) {
-            case 'audio':
+            case 'audio': {
                 let singleFilename: string;
                 if (Array.isArray(s.filename)) {
                     // if multiple are provided, choose one at random
@@ -22,29 +25,52 @@ function privateProcessScene(scenes: AllSceneTypes[], context: SceneContext): Pr
                 }
 
                 return delay.then(() => audio.play(singleFilename));
+            }
 
-            case 'chat':
+            case 'chat': {
                 const message = tokenStringParser(s.message, context);
                 return delay.then(() => chatbot.say(message));
+            }
 
-            case 'obs':
+            case 'obs': {
                 const { durationInSeconds, sceneName, sourceName } = s;
-                return delay.then(() => obs.pulseSource(sourceName, sceneName, durationInSeconds));
+                let singleSourceName: string;
+                if (Array.isArray(sourceName)) {
+                    singleSourceName = randomFrom(sourceName);
+                } else {
+                    singleSourceName = sourceName;
+                }
+                return delay.then(() => obs.pulseSource(singleSourceName, sceneName, durationInSeconds));
+            }
 
-            case 'counter':
+            case 'counter': {
                 const { change } = s;
                 return delay.then(() => counter.processCounter(change));
+            }
+
+            case 'motor': {
+                const { durationInSeconds, power, id } = s;
+                return delay.then(() => hub.sendMotor(power, durationInSeconds * 1e3, id));
+            }
+
+            case 'nerf': {
+                // no specific settings as of now
+                return delay.then(() => nerf.fire());
+            }
+
+            case 'key': {
+                return delay.then(() => keys.send(s.keys));
+            }
 
         }
     });
 
-    return Promise.all(promises).then(() => { });
+    await Promise.all(promises);
 
 }
 
-export async function processScene(scenes: AllSceneTypes[], context: SceneContext, before?: () => Promise<void>): Promise<void> {
+export async function processScene(scenes: AllSceneTypes[], context: SceneContext): Promise<void> {
     return addToQueue(() => {
-        return (before ? before() : Promise.resolve())
-            .then(() => privateProcessScene(scenes, context));
+        return privateProcessScene(scenes, context);
     });
 }

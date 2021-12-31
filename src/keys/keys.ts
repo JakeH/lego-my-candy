@@ -1,4 +1,5 @@
 import * as ioHook from 'iohook';
+import * as sendkeys from 'sendkeys';
 import { processScene } from '../scenes/scenes';
 import { getCurrentSettings, settingsLoaded$ } from '../settings/settings';
 import { logError, logMuted, logSuccess } from '../utils/log';
@@ -15,13 +16,13 @@ settingsLoaded$.subscribe(settings => {
     if (!settings) {
         return;
     }
-    // this is a bit of an expensive calculation, so we need to 
+    // this is a bit of an expensive calculation, so we need to
     // prepare the list of keys to watch for as the settings change
 
     keysToWatch = [
-        ...settings.commandTriggers,
-        ...settings.pointTriggers,
-        ...settings.bitTriggers,
+        ...(settings.commandTriggers || []),
+        ...(settings.pointTriggers || []),
+        ...(settings.bitTriggers || []),
     ]
         .filter(Boolean)
         .filter(o => o.key && !o.disabled)
@@ -40,9 +41,9 @@ function processKey(keycode: number) {
     const rev = KEYBOARD_MAPPING[keycode];
 
     const candidates = [
-        ...commandTriggers,
-        ...pointTriggers,
-        ...bitTriggers,
+        ...(commandTriggers || []),
+        ...(pointTriggers || []),
+        ...(bitTriggers || []),
     ]
         .filter(Boolean)
         .filter(o => o.key && !o.disabled)
@@ -76,9 +77,12 @@ function start() {
 
 function stop() {
     ioHook.stop();
+    ioHook.unregisterAllShortcuts();
+    ioHook.removeAllListeners('keydown');
 }
 
 export default {
     start,
     stop,
+    send: (input: string) => sendkeys(input),
 };

@@ -18,6 +18,11 @@ export interface CommandDirective extends KeyActivatedDirective {
     command: string;
 
     /**
+     * Other commands this can be triggered by.
+     */
+    aliases?: string[];
+
+    /**
      * Restricts this command to specific user types
      */
     restrictions?: UserRestrictions;
@@ -28,22 +33,9 @@ export interface CommandDirective extends KeyActivatedDirective {
     directives: AllSceneTypes[];
 
     /**
-     * If true, commands will be ignored if this is currently active 
-     * or in the queue.
-     */
-    ignoreDuplicates?: boolean;
-
-    /**
-     * A delay, in seconds, between subsequent commands of the same type
-     */
-    delayBetweenCommands?: number;
-
-    /**
      * A command cooldown. Will be immediately rejected if another instance
      * of this command is in the queue, or if it was executed before
      * this amount of seconds have elapsed since the last run.
-     * 
-     * Is an explicit `ignoreDuplicates` regardless of its setting.
      */
     cooldown?: number;
 

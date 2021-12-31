@@ -53,7 +53,7 @@ function createTMIClient(): Promise<void> {
 
     const prom = new PromWrap();
 
-    client.on('connected', () => {
+    client.once('connected', () => {
         prom.resolve();
         logSuccess(`Chat bot connected to '${hostChannel}'`);
     });
@@ -66,7 +66,7 @@ function createTMIClient(): Promise<void> {
 
 function parseBadges(badges: Badges): { [key in keyof Badges]: boolean } {
     return Object.entries(badges || {}).reduce((acc, [key]) => {
-        // if the value is in badges, then it's set, 
+        // if the value is in badges, then it's set,
         // the value doesn't seem to mean anything
         acc[key] = true;
         return acc;
@@ -188,6 +188,14 @@ function onCheerHandler(channel: string, context: ChatUserstate, message: string
 async function endProcessing() {
     if (client) {
         await client.part(hostChannel);
+        client.removeAllListeners('message');
+        client.removeAllListeners('redeem');
+        client.removeAllListeners('cheer');
+        client.removeAllListeners('join');
+        client.removeAllListeners('part');
+        client.removeAllListeners('raided');
+
+        client = null;
     }
 }
 
@@ -209,7 +217,7 @@ export default {
 
     /**
      * Sends the message to the channel's chat
-     * 
+     *
      * @param message Message to be displayed
      */
     say: (message: string) => {
@@ -217,9 +225,9 @@ export default {
     },
 
     /**
-     * Chat event stream 
-     * 
-     * @returns 
+     * Chat event stream
+     *
+     * @returns
      */
     eventStream: () => events$,
 };

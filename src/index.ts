@@ -6,24 +6,33 @@ import { processBitCommand, processCommand, processPointCommand } from './comman
 import { CommandContext } from './commands/commands.model';
 import keys from './keys/keys';
 import obs from './obs-websocket/obs-websocket';
+import nerf from './nerf/nerf';
 import pubsub from './pubsub/pubsub';
 import counter from './counter/counter';
-import { upgradeSettings } from './settings/settings';
+import { getCurrentSettings, upgradeSettings } from './settings/settings';
 import { logError, logMuted, logSuccess } from './utils/log';
 import { lh, tryAwait } from './utils/utils';
+import hub from './hub/hub';
+import { Subscription } from 'rxjs';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
     logMuted(`${eventName} ${message}`);
 }
 
+let pubsubSub$: Subscription = Subscription.EMPTY;
+let eventsSub$: Subscription = Subscription.EMPTY;
+
 async function startPubSub() {
+    // double-check
+    pubsubSub$.unsubscribe();
+
     // allow this to throw errors
     const client = pubsub.getClient();
     await client.connect();
     await client.startListening();
 
-    client.events$.subscribe(event => {
+    pubsubSub$ = client.events$.subscribe(event => {
         const eventName = bgRed().bold().white(event.type.toUpperCase());
         let message = '';
 
@@ -52,6 +61,17 @@ async function startPubSub() {
     });
 }
 
+async function startLegoHub() {
+    const { legoHub } = getCurrentSettings();
+
+    if (!legoHub || legoHub.disabled) {
+        logMuted('Lego Hub is disabled');
+        return;
+    }
+
+    await hub.start();
+}
+
 /**
  * Main function to be ran on start
  */
@@ -65,21 +85,31 @@ async function start() {
     // start counter
     await counter.start();
 
+    // start lego hub
+    await startLegoHub();
+
     // wait to connect to OBS
     const [obsErr] = await tryAwait(() => obs.start());
     if (obsErr) {
         logError(`Could not connect to OBS`, obsErr);
     }
 
-    // connect to Twitch PubSub
-    try {
-        startPubSub();
-    } catch (error) {
-        logError('Cannot start pubsub listener', error);
+    // wait to connect to Nerf
+    const [nerfErr] = await tryAwait(() => nerf.start());
+    if (nerfErr) {
+        logError(`Could not start Nerf`, nerfErr);
     }
 
+    // connect to Twitch PubSub
+    const [psErr] = await tryAwait(() => startPubSub());
+    if (psErr) {
+        logError('Cannot start pubsub listener', psErr);
+    }
+
+    // double-check
+    eventsSub$.unsubscribe();
     // listen for chat events...
-    chatBot.eventStream().subscribe(event => {
+    eventsSub$ = chatBot.eventStream().subscribe(event => {
 
         // do something with each event type...
 
@@ -92,10 +122,6 @@ async function start() {
                 processCommand(event.command, event);
                 ev(event, `${lh(event.username)} issued '${lh(event.command)}', '${lh(event.message)}'`);
                 break;
-            case 'join':
-                checkFirstArrival(event.username);
-                ev(event, `${lh(event.username)}`);
-                break;
             case 'leave':
                 ev(event, `${lh(event.username)}`);
                 break;
@@ -104,6 +130,16 @@ async function start() {
                 ev(event, `${lh(event.username)} says '${lh(event.message)}'`);
                 break;
             case 'raided':
+                // when raided, we issue a fake command, which should
+                // be guarded to only allow the broadcaster to invoke
+                processCommand('private-raided-command', {
+                    ...event,
+                    broadcaster: true,
+                    founder: true,
+                    moderator: true,
+                    subscriber: true,
+                    vip: true,
+                });
                 ev(event, `${lh(event.username)} with '${lh(event.viewers)} viewers'`);
                 break;
             default:
@@ -116,18 +152,80 @@ async function start() {
 }
 
 /**
+ * Executes the stop function for a single individual service
+ * @param name Name of the service for use in logging
+ * @param stopFun The stop function to execute
+ */
+async function individualStop(name: string, stopFun: () => Promise<void>) {
+    const [err] = await tryAwait(() => stopFun());
+    if (err) {
+        logError(`'${name}' failed to stop`, err);
+    } else {
+        logSuccess(`'${name}' stopped successfully`);
+    }
+}
+
+/**
  * Stops listeners, cleans up before exiting
  */
-async function stop() {
-    await chatBot.stop();
-    await pubsub.stop();
-    await counter.stop();
-    process.exit(0);
+async function stop(exitOnDone: boolean = true) {
+
+    logMuted('Shutting down services');
+
+    // const errHandler = (which: string) => (err: Error) => logError(`'${which}' failed to stop`, err);
+
+    await individualStop('chatBot', chatBot.stop);
+    await individualStop('pubsub', pubsub.stop);
+    await individualStop('counter', counter.stop);
+    await individualStop('hub', hub.stop);
+    await individualStop('nerf', nerf.stop);
+    await individualStop('obs', obs.stop);
+
+    pubsubSub$.unsubscribe();
+    eventsSub$.unsubscribe();
+
+    keys.stop();
+
+    if (exitOnDone) {
+        logMuted('Bye!');
+        process.exit(0);
+    }
+}
+
+async function restart() {
+
+    logMuted('Restarting all services');
+
+    await stop(false);
+
+    logMuted('Services are stopped');
+
+    await start();
+
+    logSuccess('Restart complete');
+}
+
+function handleInput(data: string) {
+    const message = data.toString().toLowerCase().trim();
+    switch (message) {
+        case 'exit': {
+            stop();
+            break;
+        }
+        case 'restart': {
+            restart();
+            break;
+        }
+    }
 }
 
 // clean up on exit
-process.on('SIGINT', stop);
-process.on('SIGTERM', stop);
+['SIGINT', 'SIGTERM', 'SIGQUIT'].forEach(signal => {
+    process.on(signal, () => {
+        logError(`PROCESS ENDED WITH ${signal}! USE THE 'exit' COMMAND NEXT TIME!`);
+        stop();
+    });
+});
 
 // entry point
 (async () => {
@@ -137,7 +235,10 @@ process.on('SIGTERM', stop);
         process.exit(0);
     }
 
-    logSuccess('Starting application');
+    logSuccess(`Starting application. Type 'exit' to end`);
+
+    const stdin = process.openStdin();
+    stdin.on('data', handleInput);
 
     await start();
 

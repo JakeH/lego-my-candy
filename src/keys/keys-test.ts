@@ -1,5 +1,6 @@
 import * as ioHook from 'iohook';
 import { KEYBOARD_MAPPING } from './mappings';
+import * as sendkeys from 'sendkeys';
 
 ioHook.start();
 

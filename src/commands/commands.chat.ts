@@ -2,7 +2,6 @@ import { CommandContext } from './commands.model';
 import { getCurrentSettings } from '../settings/settings';
 import { processScene } from '../scenes/scenes';
 import { logError, logMuted } from '../utils/log';
-import { wait } from '../utils/utils';
 import { userHasPermission } from '../utils/user-restrictions';
 import { processSpecialCommand } from '../special-commands/special';
 import { SpecialCommandTypes } from 'special-commands/special.models';
@@ -52,18 +51,22 @@ function internalProcessCommand(command: string, context: CommandContext) {
         return;
     }
 
-    const directive = commandTriggers.find(o => o.command.toLowerCase() === command.toLowerCase());
+    // find the directive either by the root command, or its aliases
+    const directive = commandTriggers
+        // if this command is not disabled
+        .filter(o => o.disabled !== true)
+        // if this command is meant for mods or vip...
+        .filter(o => userHasPermission(context, o.restrictions))
+        .find(o =>
+            o.command.toLowerCase() === command.toLowerCase()
+            || o.aliases?.find(a => a.toLowerCase() === command.toLowerCase()),
+        );
 
-    // if we have no matching directive for this command, 
-    // or it is disabled 
-    if (!directive || directive.disabled) {
+    // if we have no matching directive for this command...
+    if (!directive) {
         return;
     }
 
-    // if this command is meant for mods or vip...
-    if (!userHasPermission(context, directive.restrictions)) {
-        return;
-    }
     let recent = getRecent(command);
 
     // if we have a cooldown...
@@ -77,34 +80,17 @@ function internalProcessCommand(command: string, context: CommandContext) {
         }
     }
 
-    if (directive.ignoreDuplicates && recent.active > 0) {
-        logError(`Duplicate command '${command}' ignored`);
-        return;
-    }
-
     recent.active++;
 
     // send it to the scene processor
     processScene(directive.directives, {
         ...context,
-    }, async () => {
-        recent = getRecent(command);
-
-        if (directive.delayBetweenCommands) {
-            const sinceLastRun = Date.now() - (recent.lastRun || Number.MAX_SAFE_INTEGER);
-            const waitFor = Math.max(0, sinceLastRun + (directive.delayBetweenCommands * 1e3));
-            logMuted(`Waiting ${waitFor} to execute '${command}'`);
-            await wait(waitFor);
-        }
-
-        recent.lastRun = Date.now();
-
     }).catch(err => {
         logError(`Failed to run command ${command}`, err);
     }).finally(() => {
         recent = getRecent(command);
         recent.active--;
-
+        recent.lastRun = Date.now();
         logMuted(`Finished command '${command}'`);
     });
 

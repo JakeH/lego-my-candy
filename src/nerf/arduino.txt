@@ -1,0 +1,44 @@
+const int MOTOR_PIN = 3;
+const int FIRE_PIN = 4;
+const int LED_PIN = 13; // 13 for the nano pinout
+
+void setup() {
+  // set pins for output
+  pinMode(MOTOR_PIN, OUTPUT);
+  pinMode(FIRE_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
+
+  // open serial connection
+  Serial.begin(9600);
+}
+
+void loop() {
+
+  if (Serial.available()) {
+    char incoming = Serial.read();
+    if (incoming == '1') {
+      fireDart();
+    }
+  }
+}
+
+void fireDart() {
+  // turn on LED so we know it's working
+  digitalWrite(LED_PIN, HIGH);
+
+  // get the motor running, head out on the highway
+  digitalWrite(MOTOR_PIN, HIGH);
+
+  // wait for the motor to spin up
+  // is 2 seconds enough?
+  delay(2000);
+
+  // fire dart
+  digitalWrite(FIRE_PIN, HIGH);
+  delay(500);
+
+  // turn everything off
+  digitalWrite(FIRE_PIN, LOW);
+  digitalWrite(MOTOR_PIN, LOW);
+  digitalWrite(LED_PIN, LOW);
+}

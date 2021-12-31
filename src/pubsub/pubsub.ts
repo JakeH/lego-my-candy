@@ -133,8 +133,16 @@ class PubSubClient {
     public async disconnect() {
         this.isConnected = false;
         clearInterval(this.pingTimerRef);
-        this.ws?.close();
+
         await this.stopListening().catch(() => { /* no-op */ });
+
+        if (this.ws) {
+            this.ws.removeAllListeners('open');
+            this.ws.removeAllListeners('close');
+            this.ws.removeAllListeners('message');
+            this.ws.close();
+            this.ws.terminate();
+        }
     }
 
     private reconnect() {
@@ -293,7 +301,9 @@ export default {
             return;
         }
 
-        return client.disconnect().catch(() => { /* */ });
+        await tryAwait(() => client.disconnect());
+
+        client = null;
     }
 
 };
