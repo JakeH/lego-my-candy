@@ -8,7 +8,7 @@ import {
     Options as tmiOptions
 } from 'tmi.js';
 import { AllEventTypes, UserInfo } from './chat-bot.models';
-import { logMuted, logSuccess } from '../utils/log';
+import { logError, logMuted, logSuccess } from '../utils/log';
 import { PromWrap } from '../utils/utils';
 
 let hostChannel = '';
@@ -222,6 +222,16 @@ export default {
      */
     say: (message: string) => {
         client.say(hostChannel, message);
+    },
+
+    /**
+     * Sends a whisper message to a user
+     *
+     * @param username Name of the user to whisper
+     * @param message Message to send
+     */
+    whisper: (username: string, message: string) => {
+        client.whisper(username, message);
     },
 
     /**
