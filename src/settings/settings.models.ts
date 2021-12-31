@@ -4,6 +4,7 @@ import { CounterSettings } from 'counter/counter.models';
 import { LegoHubSettings } from 'hub/hub.models';
 import { NerfSettings } from 'nerf/nerf.model';
 import { OBSWebsocketCredentials } from 'obs-websocket/obs-websocket.models';
+import { SpecialCommandOptions } from 'special-commands/special.models';
 
 export interface AppSettings {
 
@@ -97,6 +98,11 @@ export interface AppSettings {
      * Counter settings
      */
     counter?: CounterSettings;
+
+    /**
+     * Commands which require custom code to execute
+     */
+    specialCommands?: SpecialCommandOptions;
 
     /**
      * Lego hub settings

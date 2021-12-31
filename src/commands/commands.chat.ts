@@ -3,6 +3,7 @@ import { getCurrentSettings } from '../settings/settings';
 import { processScene } from '../scenes/scenes';
 import { logError, logMuted } from '../utils/log';
 import { userHasPermission } from '../utils/user-restrictions';
+import { isSpecialCommand, processSpecialCommand } from '../special-commands/special';
 
 interface RecentCommand {
     command: string;
@@ -30,6 +31,20 @@ function getRecent(command: string): RecentCommand {
 }
 
 export function processCommand(command: string, context: CommandContext) {
+
+    command = command.toLowerCase();
+
+    const isSpecial = isSpecialCommand(command);
+
+    if (isSpecial) {
+        return processSpecialCommand(command, context);
+
+    } else {
+        return internalProcessCommand(command, context);
+    }
+}
+
+function internalProcessCommand(command: string, context: CommandContext) {
     const { commandTriggers } = getCurrentSettings();
 
     if (!commandTriggers || commandTriggers.length === 0) {
