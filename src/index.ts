@@ -14,6 +14,8 @@ import { logError, logMuted, logSuccess } from './utils/log';
 import { lh, tryAwait } from './utils/utils';
 import hub from './hub/hub';
 import { Subscription } from 'rxjs';
+import { registerSpecialCommand } from './special-commands/special';
+import { example } from './special-commands/example';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
@@ -139,6 +141,8 @@ async function start() {
                     moderator: true,
                     subscriber: true,
                     vip: true,
+                    message: '',
+                    command: 'private-raided-command',
                 });
                 ev(event, `${lh(event.username)} with '${lh(event.viewers)} viewers'`);
                 break;

@@ -3,6 +3,8 @@ import { UserInfo } from '../chat-bot/chat-bot.models';
 import { AllSceneTypes } from '../scenes/scenes.models';
 
 export type CommandContext = UserInfo & {
+    message: string;
+    command: string;
     sent: Date;
 };
 

@@ -146,8 +146,15 @@ export function upgradeSettings(): boolean {
     if (!settings.nerf) {
         settings.nerf = {
             port: 'COM??',
-            disabled: false,
+            disabled: true,
         };
+
+        updated = true;
+    }
+
+    if (!settings.specialCommands) {
+        settings.specialCommands = [];
+        updated = true;
     }
 
     if (updated) {
@@ -156,14 +163,14 @@ export function upgradeSettings(): boolean {
             channel, identity, pubsub, streamElements,
             obsWebsocket, arrivalNotifications,
             commandTriggers, bitTriggers, pointTriggers,
-            counter, legoHub, nerf,
+            counter, legoHub, nerf, specialCommands
         } = settings;
 
         appSettings = {
             channel, identity, pubsub, streamElements,
             obsWebsocket, arrivalNotifications,
             commandTriggers, bitTriggers, pointTriggers,
-            counter, legoHub, nerf,
+            counter, legoHub, nerf, specialCommands
         };
 
         saveSettings(true);
