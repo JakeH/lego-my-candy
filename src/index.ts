@@ -71,7 +71,11 @@ async function startLegoHub() {
         return;
     }
 
-    await hub.start();
+    const [err] = await tryAwait(() => hub.start());
+
+    if (err) {
+        logError('Failed to start Lego Hub', err);
+    }
 }
 
 /**
