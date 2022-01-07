@@ -221,7 +221,7 @@ export default {
      * @param message Message to be displayed
      */
     say: (message: string) => {
-        client.say(hostChannel, message);
+        return client.say(hostChannel, message);
     },
 
     /**
@@ -231,7 +231,7 @@ export default {
      * @param message Message to send
      */
     whisper: (username: string, message: string) => {
-        client.whisper(username, message);
+        return client.whisper(username, message);
     },
 
     /**
