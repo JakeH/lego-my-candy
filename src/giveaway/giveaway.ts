@@ -1,12 +1,12 @@
-import { CommandContext } from '../commands/commands.model';
-import { appendFileSync, readFileSync, writeFileSync } from 'fs';
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import { EOL } from 'os';
+import { join as pathJoin } from 'path';
+import chatBot from '../chat-bot/chat-bot';
+import { CommandContext } from '../commands/commands.model';
 import { getCurrentSettings } from '../settings/settings';
 import { registerSpecialCommand, unregisterSpecialCommand } from '../special-commands/special';
-import { logWarn } from '../utils/log';
-import chatBot from '../chat-bot/chat-bot';
-import { tokenStringParser, tryAwait } from '../utils/utils';
-import { join as pathJoin } from 'path';
+import { logError, logWarn } from '../utils/log';
+import { randomFrom, tokenStringParser, tryAwait } from '../utils/utils';
 
 interface ItemInfo {
     name: string;
@@ -17,7 +17,8 @@ let eventHasBegun = false;
 let eventStartTime: number;
 let participants: Array<string> = [];
 let command: string;
-let periodicChatHandle: NodeJS.Timeout;
+let periodicActiveChatHandle: NodeJS.Timeout;
+let periodicInactiveChatHandle: NodeJS.Timeout;
 let eventEndHandler: NodeJS.Timeout;
 
 let itemsToGive: Array<ItemInfo> = [];
@@ -59,22 +60,29 @@ function loadSource() {
 }
 
 function getItemToGive(): ItemInfo {
-    const random = Math.floor(Math.random() * itemsToGive.length);
-    const item = itemsToGive[random];
 
-    itemsToGive.splice(random);
+    const [item, index] = randomFrom(itemsToGive);
+
+    itemsToGive.splice(index);
 
     return item;
 }
 
+/**
+ * Adds user to event, based on their eligibility
+ *
+ * @param context
+ * @returns
+ */
 async function enterUserToEvent(context: CommandContext) {
     const { username } = context;
-    const { giveaway } = getCurrentSettings();
 
     // check to see if the user is already participating
     if (participants.includes(username)) {
         return;
     }
+
+    const { giveaway } = getCurrentSettings();
 
     const [err] = await tryAwait(() => chatBot.whisper(username, giveaway.entryWhisper));
 
@@ -90,6 +98,11 @@ async function enterUserToEvent(context: CommandContext) {
     startEvent();
 }
 
+/**
+ * Begins the event, if the conditions for doing so are met
+ *
+ * @returns
+ */
 function startEvent() {
     const { giveaway } = getCurrentSettings();
 
@@ -104,9 +117,9 @@ function startEvent() {
 
     chatBot.say(giveaway.eventStartedChatMessage);
 
-    periodicChatHandle = setInterval(
-        periodicMessage,
-        giveaway.periodicChatIntervalInMinutes * 1e3 * 60,
+    periodicActiveChatHandle = setInterval(
+        periodicActiveMessage,
+        giveaway.periodicActiveChatIntervalInMinutes * 1e3 * 60,
     );
 
     eventEndHandler = setTimeout(
@@ -115,7 +128,12 @@ function startEvent() {
     );
 }
 
-function periodicMessage() {
+/**
+ * Sends the periodic reminder message while the event is active
+ *
+ * @returns
+ */
+function periodicActiveMessage() {
     const { giveaway } = getCurrentSettings();
     const remaining = giveaway.eventLengthInMinutes - Math.round((Date.now() - eventStartTime) / 1e3 / 60);
 
@@ -123,7 +141,7 @@ function periodicMessage() {
         return;
     }
 
-    const message = tokenStringParser(giveaway.periodicChatMessage, {
+    const message = tokenStringParser(giveaway.periodicActiveChatMessage, {
         count: participants.length,
         remaining,
     });
@@ -131,11 +149,20 @@ function periodicMessage() {
     chatBot.say(message);
 }
 
+function periodicInactiveMessage() {
+    const { giveaway } = getCurrentSettings();
+
+    if (eventHasBegun) {
+        return;
+    }
+
+    chatBot.say(giveaway.periodicInactiveChatMessage);
+}
+
 function eventEnded() {
     const { giveaway } = getCurrentSettings();
 
-    const random = Math.floor(Math.random() * participants.length);
-    const winner = participants[random];
+    const [winner] = randomFrom(participants);
 
     const item = getItemToGive();
 
@@ -163,15 +190,31 @@ function eventEnded() {
 
 function cleanup() {
 
-    clearInterval(periodicChatHandle);
+    clearInterval(periodicActiveChatHandle);
     clearTimeout(eventEndHandler);
 
     participants = [];
     eventHasBegun = false;
+    eventStartTime = null;
 }
 
 async function start() {
+
+    // prevent us from starting multiple times
+    if (command) {
+        return;
+    }
+
     const { giveaway } = getCurrentSettings();
+
+    if (!existsSync(sourceFile)) {
+
+        logError(`The giveaway source file is missing.`, {
+            sourceFile,
+        });
+
+        return;
+    }
 
     loadSource();
 
@@ -180,13 +223,22 @@ async function start() {
     // says at `stop` time.
     command = giveaway.command;
 
+    periodicInactiveChatHandle = setTimeout(
+        periodicInactiveMessage,
+        giveaway.periodicInactiveChatIntervalInMinutes * 1e3 * 60,
+    );
+
     registerSpecialCommand(command, enterUserToEvent);
 }
 
 async function stop() {
     unregisterSpecialCommand(command);
 
+    command = null;
+
     cleanup();
+
+    clearInterval(periodicInactiveChatHandle);
 }
 
 export default {

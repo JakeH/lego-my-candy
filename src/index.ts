@@ -223,8 +223,12 @@ function handleInput(data: string) {
             restart();
             break;
         }
-        case 'giveaway': {
+        case 'giveaway start': {
             giveaway.start();
+            break;
+        }
+        case 'giveaway stop': {
+            giveaway.stop();
             break;
         }
     }

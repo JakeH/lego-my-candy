@@ -19,7 +19,7 @@ async function privateProcessScene(scenes: AllSceneTypes[], context: SceneContex
                 let singleFilename: string;
                 if (Array.isArray(s.filename)) {
                     // if multiple are provided, choose one at random
-                    singleFilename = randomFrom(s.filename);
+                    [singleFilename] = randomFrom(s.filename);
                 } else {
                     singleFilename = s.filename;
                 }
@@ -36,7 +36,7 @@ async function privateProcessScene(scenes: AllSceneTypes[], context: SceneContex
                 const { durationInSeconds, sceneName, sourceName } = s;
                 let singleSourceName: string;
                 if (Array.isArray(sourceName)) {
-                    singleSourceName = randomFrom(sourceName);
+                    [singleSourceName] = randomFrom(sourceName);
                 } else {
                     singleSourceName = sourceName;
                 }
