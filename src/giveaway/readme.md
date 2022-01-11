@@ -11,8 +11,11 @@ You will need to create a file which contains a list of the games and redemption
 2. Add the items in the following format
 
 [name]
+
 [key]
+
 [blank space]
+
 
 For example
 ```
