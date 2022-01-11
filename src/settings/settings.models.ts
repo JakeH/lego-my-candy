@@ -1,6 +1,7 @@
 import { UserJoinedSourceActivation } from 'arrivals/arrivals.models';
 import { BitCommandDirective, CommandDirective, PointCommandDirective } from 'commands/commands.model';
 import { CounterSettings } from 'counter/counter.models';
+import { GiveawaySettings } from 'giveaway/giveaway.models';
 import { LegoHubSettings } from 'hub/hub.models';
 import { NerfSettings } from 'nerf/nerf.model';
 import { OBSWebsocketCredentials } from 'obs-websocket/obs-websocket.models';
@@ -113,5 +114,7 @@ export interface AppSettings {
      * Nerf settings
      */
     nerf?: NerfSettings;
+
+    giveaway?: GiveawaySettings;
 
 }

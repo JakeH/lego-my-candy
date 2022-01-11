@@ -14,8 +14,7 @@ import { logError, logMuted, logSuccess } from './utils/log';
 import { lh, tryAwait } from './utils/utils';
 import hub from './hub/hub';
 import { Subscription } from 'rxjs';
-import { registerSpecialCommand } from './special-commands/special';
-import { example } from './special-commands/example';
+import giveaway from './giveaway/giveaway';
 
 function ev(event: AllEventTypes, message: string) {
     const eventName = bgRed().bold().white(event.type.toUpperCase());
@@ -189,6 +188,9 @@ async function stop(exitOnDone: boolean = true) {
     await individualStop('nerf', nerf.stop);
     await individualStop('obs', obs.stop);
 
+    // special events
+    await individualStop('giveaway', giveaway.stop);
+
     pubsubSub$.unsubscribe();
     eventsSub$.unsubscribe();
 
@@ -222,6 +224,19 @@ function handleInput(data: string) {
         }
         case 'restart': {
             restart();
+            break;
+        }
+        case 'giveaway start': {
+            giveaway.start()
+                .then(() => {
+                    logSuccess('Giveaway event has started!');
+                });
+            break;
+        }
+        case 'giveaway stop': {
+            giveaway.stop().then(() => {
+                logSuccess('Giveaway event has stopped!');
+            });
             break;
         }
     }

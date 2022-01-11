@@ -28,9 +28,11 @@ export default {
         return connectToOBS();
     },
 
-    stop: async() => {
-        obs.disconnect();
-        obs = null;
+    stop: async () => {
+        if (obs) {
+            obs.disconnect();
+            obs = null;
+        }
         return Promise.resolve();
     },
 

@@ -157,20 +157,37 @@ export function upgradeSettings(): boolean {
         updated = true;
     }
 
+    if (!settings.giveaway) {
+        settings.giveaway = {
+            command: 'giveaway',
+            entryWhisper: 'You have been entered',
+            whisperFailMessage: '@{{username}} - We are unable to send you whispers. You must enable whispers to join.',
+            wonWhisper: 'You won! "{{name}}"  key: "{{key}}"',
+            wonChatMessage: '{{username}} won the game "{{name}}"',
+            periodicActiveChatMessage: 'Giveaway in progress! {{count}} viewer(s) have joined! {{remaining}} minute(s) left! Type !giveaway to join',
+            periodicActiveChatIntervalInMinutes: 1,
+            periodicInactiveChatMessage: 'Type !giveaway to join. {{count}} viewer(s) have joined, giveaway starts with {{min}} viewer(s).',
+            periodicInactiveChatIntervalInMinutes: 10,
+            minEntriesToStart: 1,
+            eventLengthInMinutes: 5
+        };
+        updated = true;
+    }
+
     if (updated) {
         // sorting just because
         const {
             channel, identity, pubsub, streamElements,
             obsWebsocket, arrivalNotifications,
             commandTriggers, bitTriggers, pointTriggers,
-            counter, legoHub, nerf, specialCommands
+            counter, legoHub, nerf, specialCommands, giveaway,
         } = settings;
 
         appSettings = {
             channel, identity, pubsub, streamElements,
             obsWebsocket, arrivalNotifications,
             commandTriggers, bitTriggers, pointTriggers,
-            counter, legoHub, nerf, specialCommands
+            counter, legoHub, nerf, specialCommands, giveaway
         };
 
         saveSettings(true);

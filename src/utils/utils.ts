@@ -5,9 +5,9 @@ const queue = new SequentialTaskQueue();
 
 /**
  * Adds the function to a FIFO queue
- * 
+ *
  * @param task The function to execute
- * @returns 
+ * @returns
  */
 export async function addToQueue(task: Function) {
     return queue.push(task);
@@ -15,9 +15,9 @@ export async function addToQueue(task: Function) {
 
 /**
  * Returns a promise which resolves after a certain amount of time
- * 
+ *
  * @param duration The duration, in milliseconds, to wait before resolving
- * @returns 
+ * @returns
  */
 export async function wait(duration: number): Promise<void> {
 
@@ -34,11 +34,11 @@ export async function wait(duration: number): Promise<void> {
 
 /**
  * Returns `value` clamped between `min` and `max`
- * 
+ *
  * @param value The value to clamp
  * @param min The min acceptable value
  * @param max The max acceptable value
- * @returns 
+ * @returns
  */
 export function clamp(value: number, min: number, max: number): number {
     return Math.min(Math.max(value, min), max);
@@ -57,12 +57,12 @@ const TOKEN_MATCHTER_REGEX = /{{\s?([^{}\s]*)\s?}}/g;
 
 /**
  * Returns a string with replacements.
- * 
+ *
  * @param input The input string
  * @param values The values to use for replacements
- * 
+ *
  * @example
- * 
+ *
  * tokenStringParser('Hello, {{username}}', {username: 'jo_mamma'});
  */
 export function tokenStringParser<T extends object>(input: string, values: T): string {
@@ -74,9 +74,9 @@ export function tokenStringParser<T extends object>(input: string, values: T): s
 
 /**
  * Simple highlighter for the log
- * 
- * @param input 
- * @returns 
+ *
+ * @param input
+ * @returns
  */
 export function lh(input: string | number) {
     return bgBlack().bold().cyan(input);
@@ -124,11 +124,12 @@ export class PromWrap<T = void> {
 }
 
 /**
- * Returns a random element from an array
- * 
- * @param arr 
- * @returns 
+ * Returns a random element from an array and its index
+ *
+ * @param arr
+ * @returns
  */
-export function randomFrom<T>(arr: T[]): T {
-    return arr[Math.floor(Math.random() * arr.length)];
+export function randomFrom<T>(arr: T[]): [T, number] {
+    const index = Math.floor(Math.random() * arr.length);
+    return [arr[index], index];
 }
