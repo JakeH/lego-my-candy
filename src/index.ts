@@ -188,6 +188,9 @@ async function stop(exitOnDone: boolean = true) {
     await individualStop('nerf', nerf.stop);
     await individualStop('obs', obs.stop);
 
+    // special events
+    await individualStop('giveaway', giveaway.stop);
+
     pubsubSub$.unsubscribe();
     eventsSub$.unsubscribe();
 
@@ -224,11 +227,16 @@ function handleInput(data: string) {
             break;
         }
         case 'giveaway start': {
-            giveaway.start();
+            giveaway.start()
+                .then(() => {
+                    logSuccess('Giveaway event has started!');
+                });
             break;
         }
         case 'giveaway stop': {
-            giveaway.stop();
+            giveaway.stop().then(() => {
+                logSuccess('Giveaway event has stopped!');
+            });
             break;
         }
     }

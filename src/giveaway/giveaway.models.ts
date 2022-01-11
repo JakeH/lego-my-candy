@@ -12,9 +12,10 @@ export interface GiveawaySettings {
     entryWhisper: string;
 
     /**
-     * Message sent to general chat when the event has started
+     * General chat message sent, addressed to the user who
+     * we've failed to send a whisper to
      */
-    eventStartedChatMessage: string;
+    whisperFailMessage: string;
 
     /**
      * Whisper sent to the winner

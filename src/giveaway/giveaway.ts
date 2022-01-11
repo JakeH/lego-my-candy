@@ -5,7 +5,7 @@ import chatBot from '../chat-bot/chat-bot';
 import { CommandContext } from '../commands/commands.model';
 import { getCurrentSettings } from '../settings/settings';
 import { registerSpecialCommand, unregisterSpecialCommand } from '../special-commands/special';
-import { logError, logWarn } from '../utils/log';
+import { logError, logMuted, logWarn } from '../utils/log';
 import { randomFrom, tokenStringParser, tryAwait } from '../utils/utils';
 
 interface ItemInfo {
@@ -40,6 +40,7 @@ function loadSource() {
     let last: string;
 
     itemsToGive = lines
+        .map(line => line?.trim() || null)
         .filter(Boolean)
         .reduce((acc, cur) => {
             if (last) {
@@ -63,7 +64,7 @@ function getItemToGive(): ItemInfo {
 
     const [item, index] = randomFrom(itemsToGive);
 
-    itemsToGive.splice(index);
+    itemsToGive.splice(index, 1);
 
     return item;
 }
@@ -88,13 +89,17 @@ async function enterUserToEvent(context: CommandContext) {
 
     // if there is an error in sending them a whisper, we cannot allow them to participate
     if (err) {
-        logWarn(`User '${username}' could not receive a whisper. ${err.message}`);
+        logWarn(`User '${username}' could not receive a whisper. ${err}`);
+        chatBot.say(tokenStringParser(giveaway.whisperFailMessage, { username }));
         return;
     }
 
     // otherwise, they are okay to join
     participants.push(username);
 
+    logMuted(`${username} has joined giveaway!`);
+
+    // see if we can start the event yet
     startEvent();
 }
 
@@ -115,13 +120,16 @@ function startEvent() {
     eventHasBegun = true;
     eventStartTime = Date.now();
 
-    chatBot.say(giveaway.eventStartedChatMessage);
+    // kick off the event start with the first periodic message
+    periodicActiveMessage();
 
+    // schedule the periodic message
     periodicActiveChatHandle = setInterval(
         periodicActiveMessage,
         giveaway.periodicActiveChatIntervalInMinutes * 1e3 * 60,
     );
 
+    // handle the event completed after N minutes
     eventEndHandler = setTimeout(
         eventEnded,
         giveaway.eventLengthInMinutes * 1e3 * 60,
@@ -156,7 +164,12 @@ function periodicInactiveMessage() {
         return;
     }
 
-    chatBot.say(giveaway.periodicInactiveChatMessage);
+    const message = tokenStringParser(giveaway.periodicInactiveChatMessage, {
+        count: participants.length,
+        min: giveaway.minEntriesToStart,
+    });
+
+    chatBot.say(message);
 }
 
 function eventEnded() {
@@ -179,13 +192,20 @@ function eventEnded() {
     chatBot.whisper(winner, whisper);
     chatBot.say(chat);
 
-    appendFileSync(givenFile, `${winner}\n${item.name}\n${item.key}\n`);
+    appendFileSync(givenFile, `${winner}${EOL}${item.name}${EOL}${item.key}${EOL}${EOL}`);
 
     writeFileSync(sourceFile, itemsToGive.map(o => {
-        return `${o.name}\n${o.key}\n`;
+        return `${o.name}${EOL}${o.key}${EOL}${EOL}`;
     }).join(''));
 
-    cleanup();
+    // check to see if there are any more items.
+    if (!itemsToGive.length) {
+        logWarn('There are no more items to give away, ending event');
+        stop();
+    } else {
+        cleanup();
+    }
+
 }
 
 function cleanup() {
@@ -218,10 +238,18 @@ async function start() {
 
     loadSource();
 
+    if (!itemsToGive.length) {
+        logError('Could not properly load the items to give.');
+    }
+
     // store the name locally as this is what we will need
     // to unregister, depsite what the current settings file
     // says at `stop` time.
     command = giveaway.command;
+
+    // send out the first periodic inactive message to announce
+    // the event
+    periodicInactiveMessage();
 
     periodicInactiveChatHandle = setTimeout(
         periodicInactiveMessage,
@@ -232,6 +260,11 @@ async function start() {
 }
 
 async function stop() {
+    // we were never started if command is falsy
+    if (!command) {
+        return;
+    }
+
     unregisterSpecialCommand(command);
 
     command = null;
