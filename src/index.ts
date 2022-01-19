@@ -127,9 +127,6 @@ async function start() {
                 processCommand(event.command, event);
                 ev(event, `${lh(event.username)} issued '${lh(event.command)}', '${lh(event.message)}'`);
                 break;
-            case 'leave':
-                ev(event, `${lh(event.username)}`);
-                break;
             case 'message':
                 checkFirstArrival(event.username);
                 ev(event, `${lh(event.username)} says '${lh(event.message)}'`);
@@ -149,8 +146,12 @@ async function start() {
                 });
                 ev(event, `${lh(event.username)} with '${lh(event.viewers)} viewers'`);
                 break;
+            case 'leave':
+            case 'join':
+                ev(event, `${lh(event.username)}`);
+                break;
             default:
-                console.log(event);
+                // console.log(event);
                 break;
         }
 
