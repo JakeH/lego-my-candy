@@ -160,6 +160,7 @@ export function upgradeSettings(): boolean {
     if (!settings.giveaway) {
         settings.giveaway = {
             command: 'giveaway',
+            rewardTitle: '',
             entryWhisper: 'You have been entered',
             whisperFailMessage: '@{{username}} - We are unable to send you whispers. You must enable whispers to join.',
             wonWhisper: 'You won! "{{name}}"  key: "{{key}}"',

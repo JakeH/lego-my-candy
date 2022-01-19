@@ -1,9 +1,18 @@
 
 export interface GiveawaySettings {
     /**
-     * The command to react to in chat
+     * The command to react to in chat to enter the viewer into the giveaway.
+     *
+     * If you want to use channel points, leave this blank and enter `rewardTitle` instead
      */
-    command: string;
+    command?: string;
+
+    /**
+     * The channel points reward title which the viewer can redeem to enter.
+     *
+     * If you want to use chat commands, leave this blank and enter `command` instead
+     */
+    rewardTitle?: string;
 
     /**
      * Whisper that will be sent to the viewer when

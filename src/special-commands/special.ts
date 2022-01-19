@@ -1,12 +1,25 @@
-import { getCurrentSettings, settingsLoaded$ } from '../settings/settings';
+import { getCurrentSettings } from '../settings/settings';
 import { logError } from '../utils/log';
 import { CommandContext } from '../commands/commands.model';
 import { example } from './example';
 import { SpecialCommandProcessor } from './special.models';
 
-const processorMap: Record<string, SpecialCommandProcessor> = {
-    // 'example': example,
-};
+export type SpecialCommandSourceTypes = 'chat' | 'points';
+
+const processorMap: Map<string, SpecialCommandProcessor> = new Map([
+    // [createMapName('example', 'chat'), example],
+]);
+
+/**
+ * Creates a name for use in the internal map, unique to its source type
+ *
+ * @param name
+ * @param type
+ * @returns
+ */
+function createMapKey(name: string, type: SpecialCommandSourceTypes): string {
+    return `__${type}__${name}`.toLowerCase();
+}
 
 /**
  * Returns `true` if the command has an associated processor function loaded
@@ -14,8 +27,8 @@ const processorMap: Record<string, SpecialCommandProcessor> = {
  * @param name The command text
  * @returns
  */
-export function isSpecialCommand(name: string): boolean {
-    return name.toLowerCase() in processorMap;
+export function isSpecialCommand(name: string, type: SpecialCommandSourceTypes): boolean {
+    return processorMap.has(createMapKey(name, type));
 }
 
 /**
@@ -24,8 +37,8 @@ export function isSpecialCommand(name: string): boolean {
  * @param name The command text
  * @param func The processor to execute for the command
  */
-export function registerSpecialCommand(name: string, func: SpecialCommandProcessor) {
-    processorMap[name.toLowerCase()] = func;
+export function registerSpecialCommand(name: string, type: SpecialCommandSourceTypes, func: SpecialCommandProcessor) {
+    processorMap.set(createMapKey(name, type), func);
 }
 
 /**
@@ -33,8 +46,8 @@ export function registerSpecialCommand(name: string, func: SpecialCommandProcess
  *
  * @param name The command text
  */
-export function unregisterSpecialCommand(name: string) {
-    delete processorMap[name.toLowerCase()];
+export function unregisterSpecialCommand(name: string, type: SpecialCommandSourceTypes) {
+    processorMap.delete(createMapKey(name, type));
 }
 
 /**
@@ -44,7 +57,7 @@ export function unregisterSpecialCommand(name: string) {
  * @param context Context of the command request
  * @returns
  */
-export function processSpecialCommand(name: string, context: CommandContext): void {
+export function processSpecialCommand(name: string, type: SpecialCommandSourceTypes, context: CommandContext): void {
 
     const { specialCommands } = getCurrentSettings();
 
@@ -61,7 +74,7 @@ export function processSpecialCommand(name: string, context: CommandContext): vo
         return;
     }
 
-    const func = processorMap[name];
+    const func = processorMap.get(createMapKey(name, type));
 
     if (!func) {
         logError(`No special command processor found for '${name}'`);

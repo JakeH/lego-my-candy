@@ -33,7 +33,8 @@ The [name] will be used in private and public communication, while the [key] is 
 
 | Setting | Purpose | Tokens |
 |---|---|---|
-| command | Chat command used to enter giveaway |  |
+| command | Chat command used to enter giveaway. If you want to use channel points, leave this blank and enter `rewardTitle` instead |  |
+| rewardTitle | Channel point reward title used to enter giveaway. If you want to use chat commands, leave this blank and enter `command` instead |  |
 | entryWhisper | Whisper sent to viewer upon successful entry |  |
 | whisperFailMessage | General chat message addressed to viewer when whisper failed | username |
 | wonWhisper | Whisper message sent to winner | name, key |
@@ -62,7 +63,7 @@ Restarting the software will stop the giveaway, but will not start it back up.
 
 ### Viewer Attempts Entry Event
 
-1. Viewer A issues **command** to join event
+1. Viewer A issues chat **command** or redeems **rewardTitle** to join event
    1. A whisper with **entryWhisper** is sent to the viewer
       1. If the whisper fails, **whisperFailMessage** is sent to general chat
       2. If the whisper succeeds, viewer is entered into the giveaway

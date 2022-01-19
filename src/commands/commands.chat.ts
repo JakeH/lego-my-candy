@@ -34,10 +34,10 @@ export function processCommand(command: string, context: CommandContext) {
 
     command = command.toLowerCase();
 
-    const isSpecial = isSpecialCommand(command);
+    const isSpecial = isSpecialCommand(command, 'chat');
 
     if (isSpecial) {
-        return processSpecialCommand(command, context);
+        return processSpecialCommand(command, 'chat', context);
 
     } else {
         return internalProcessCommand(command, context);

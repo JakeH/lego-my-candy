@@ -4,7 +4,7 @@ import { join as pathJoin } from 'path';
 import chatBot from '../chat-bot/chat-bot';
 import { CommandContext } from '../commands/commands.model';
 import { getCurrentSettings } from '../settings/settings';
-import { registerSpecialCommand, unregisterSpecialCommand } from '../special-commands/special';
+import { registerSpecialCommand, SpecialCommandSourceTypes, unregisterSpecialCommand } from '../special-commands/special';
 import { logError, logMuted, logWarn } from '../utils/log';
 import { randomFrom, tokenStringParser, tryAwait } from '../utils/utils';
 
@@ -13,17 +13,59 @@ interface ItemInfo {
     key: string;
 }
 
+/**
+ * The event is active or not
+ */
 let eventHasBegun = false;
+
+/**
+ * When the event became acctive
+ */
 let eventStartTime: number;
+
+/**
+ * The list of viewers entered into the giveaway
+ */
 let participants: Array<string> = [];
+
+/**
+ * The command or reward title being used to trigger the viewer's entry
+ */
 let command: string;
+
+/**
+ * The source type of `command`
+ */
+let commandType: SpecialCommandSourceTypes;
+
+/**
+ * Timer handle for the active chat message interval
+ */
 let periodicActiveChatHandle: NodeJS.Timeout;
+
+/**
+ * Timer handle for the inactive chat message interval
+ */
 let periodicInactiveChatHandle: NodeJS.Timeout;
+
+/**
+ * Timer handle for the event countdown
+ */
 let eventEndHandler: NodeJS.Timeout;
 
+/**
+ * Items avaialble to give away
+ */
 let itemsToGive: Array<ItemInfo> = [];
 
+/**
+ * Filename for the list of items to give away
+ */
 const sourceFile = pathJoin(process.cwd(), '/assets/giveaway-source.txt');
+
+/**
+ * Filename for the list of given items
+ */
 const givenFile = pathJoin(process.cwd(), '/assets/giveaway-given.txt');
 
 function loadSource() {
@@ -245,7 +287,8 @@ async function start() {
     // store the name locally as this is what we will need
     // to unregister, depsite what the current settings file
     // says at `stop` time.
-    command = giveaway.command;
+    command = giveaway.command || giveaway.rewardTitle;
+    commandType = giveaway.command ? 'chat' : 'points';
 
     // send out the first periodic inactive message to announce
     // the event
@@ -256,7 +299,7 @@ async function start() {
         giveaway.periodicInactiveChatIntervalInMinutes * 1e3 * 60,
     );
 
-    registerSpecialCommand(command, enterUserToEvent);
+    registerSpecialCommand(command, commandType, enterUserToEvent);
 }
 
 async function stop() {
@@ -265,7 +308,7 @@ async function stop() {
         return;
     }
 
-    unregisterSpecialCommand(command);
+    unregisterSpecialCommand(command, commandType);
 
     command = null;
 
