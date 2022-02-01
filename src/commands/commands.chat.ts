@@ -55,8 +55,18 @@ function internalProcessCommand(command: string, context: CommandContext) {
     const directive = commandTriggers
         // if this command is not disabled
         .filter(o => o.disabled !== true)
-        // if this command is meant for mods or vip...
-        .filter(o => userHasPermission(context, o.restrictions))
+        .filter(o => {
+            // see if this command is guarded for specific users
+            if (o.users && o.users.filter(Boolean).length > 0) {
+                return o.users
+                    .filter(Boolean)
+                    .map(u => u.toLowerCase().trim())
+                    .includes(context.username.toLowerCase().trim());
+            }
+
+            // otherwise, check if this command is meant for mods or vip...
+            return userHasPermission(context, o.restrictions);
+        })
         .find(o =>
             o.command.toLowerCase() === command.toLowerCase()
             || o.aliases?.find(a => a.toLowerCase() === command.toLowerCase()),

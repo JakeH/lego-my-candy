@@ -30,6 +30,13 @@ export interface CommandDirective extends KeyActivatedDirective {
     restrictions?: UserRestrictions;
 
     /**
+     * If provided, only the following users can use this command. Not case-sensitive
+     *
+     * Overrides any check in `restrictions`
+     */
+    users?: string[];
+
+    /**
      * The scene directive to invoke for this command
      */
     directives: AllSceneTypes[];

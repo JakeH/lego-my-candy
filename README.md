@@ -146,9 +146,11 @@ The following are optional properties
 | ------------ | ----------------------------------------------------------------------------------------------------- |
 | disabled     | If true, the command will be disabled                                                                 |
 | restrictions | Restricts who can issue the command. See **User Permissions** for info                                |
+| users        | A list of Twitch usernames who can execute the command                                                |
 | cooldown     | A cooldown, in seconds. Subsequent similar commands issued during a cooldown period will be rejected. |
 | key          | If provided, this keypress will execute the action. See **Key Shortcuts** for important info.         |
 | aliases      | A list of other commands which can trigger this                                                       |
+
 
 
 ```json
@@ -159,6 +161,9 @@ The following are optional properties
         "restrictions": {
             "moderator": true,
         },
+        "users": [
+            "GrumbleMutt"
+        ],
         "cooldown": 10,
         "directives": [
             {
